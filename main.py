@@ -22,7 +22,7 @@ def sql_from_file(filename):
         try:
             sql.execute(command)
         except OperationalError:
-            print("Command skipped")
+            print("SQL Error: Command skipped")
     conn.commit()
 
 

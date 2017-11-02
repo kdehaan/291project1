@@ -33,6 +33,8 @@ class Interface:
             selection = self.states[self.state]().lower()
             if selection in self.states:
                 self.state = selection
+            elif selection == 'quit':
+                return
             else:  # remains in same state if invalid input detected
                 print("Invalid Selection")
                 time.sleep(0.4)
@@ -93,7 +95,6 @@ class Interface:
         print('\n~~~~ Login Menu ~~~~')
         print('Customer Login: c')
         print('Agent Login: a')
-        #print('Logout: o')
         print('Register: r')
         print('Exit Program: e')
         selection = input('Please select an action: ')
@@ -111,7 +112,7 @@ class Interface:
         print('\n~~~~ Customer Login ~~~~~')
         cid = input('CID: ')
         password = input('Password: ')
-        self.sql.execute('''select c.cid
+        self.sql.execute('''select c.name, c.cid
                             from customers c
                             where c.cid=:cid
                             and c.pwd=:pwd''',
@@ -184,6 +185,6 @@ class Interface:
         time.sleep(0.4)
         return 'l'
 
-
     def exit(self):
-        print('Exited Program')
+        print('-- Exiting Program --')
+        return 'quit'
