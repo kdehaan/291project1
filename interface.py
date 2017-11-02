@@ -58,7 +58,12 @@ class Interface:
 
     def search_products(self):
         print('~~~~ Product Search ~~~~')
-        # TODO
+        print('Multiple keywords separated by spaces may be entered')
+        keywords = input('Enter keyword(s) to search for: ')
+        for keyword in keywords:
+            print(keyword)
+
+        return 'cm'
 
     def place_order(self):
         print('~~~~ Place an Order ~~~~')
@@ -127,7 +132,7 @@ class Interface:
         if not response:
             print("Invalid ID or Password")
             time.sleep(0.4)
-            state = input("Try again? [y/n]")
+            state = input("Try again? [y/n]: ")
             if state == 'n':
                 return 'l'
             else:
@@ -151,7 +156,7 @@ class Interface:
         if not response:
             print("Invalid ID or Password")
             time.sleep(0.4)
-            state = input("Try again? [y/n]")
+            state = input("Try again? [y/n]: ")
             if state == 'n':
                 return 'l'
             else:
@@ -194,3 +199,5 @@ class Interface:
     def exit(self):
         print('-- Exiting Program --')
         return 'quit'
+
+
