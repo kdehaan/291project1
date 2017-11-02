@@ -1,8 +1,10 @@
 import sqlite3
 from sqlite3 import OperationalError
+import interface
 
 conn = sqlite3.connect('./data.db')
-sql = conn.cursor();
+sql = conn.cursor()
+i = interface.Interface()
 
 
 def sql_from_file(filename):
@@ -41,6 +43,7 @@ def main():
     :return:
     """
     setup()
+    i.login_screen()
 
 
 if __name__ == '__main__':
