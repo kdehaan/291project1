@@ -4,3 +4,5 @@ py291/
 \.idea/workspace\.xml
 
 data\.db
+
+__pycache__/interface\.cpython-36\.pyc
