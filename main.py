@@ -44,7 +44,7 @@ def main():
     :return:
     """
     setup()
-    i.login_screen()
+    i.run()
 
 
 if __name__ == '__main__':
