@@ -33,6 +33,7 @@ def setup():
     """
     sql.execute('''PRAGMA foreign_keys=ON;''')
     sql_from_file('./tables.sql')
+    sql_from_file('./agents.sql')
 
     conn.commit()
 

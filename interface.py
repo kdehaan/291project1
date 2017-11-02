@@ -51,7 +51,7 @@ class Interface:
         print('Agent Login')
         aid = input('ID: ')
         password = input('Password: ')
-        self.sql.execute('''select a.aid
+        self.sql.execute('''select a.name
                                 from agents a
                                 where a.aid=:aid
                                 and a.pwd=:pwd''',
