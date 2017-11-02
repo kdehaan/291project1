@@ -4,7 +4,7 @@ import interface
 
 conn = sqlite3.connect('./data.db')
 sql = conn.cursor()
-i = interface.Interface()
+i = interface.Interface(conn, sql)
 
 
 def sql_from_file(filename):

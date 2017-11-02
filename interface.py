@@ -1,15 +1,21 @@
+import os
+import time
+
 
 class Interface:
     """
     Controller class to manage user input
     """
-    screen = 'Login'
+    userID = -1;
+    is_agent = 0;
 
-    def __init__(self):
-        print(self.screen)
+    def __init__(self, conn, sql):
+        self.conn = conn
+        self.sql = sql
 
     def login_screen(self):
-
+        os.system('clear')
+        print('Login Menu')
         print('Customer Login: c')
         print('Agent Login: a')
         print('Logout: l')
@@ -25,14 +31,33 @@ class Interface:
         try:
             options[response]()
         except KeyError:
-            print('invalid input')
+            print('Invalid Input, please try again')
+            time.sleep(1.5)
             self.login_screen()
 
     def customer_login(self):
-        print('customer_login')
+        print('Customer Login')
+        cid = input('ID: ')
+        password = input('Password: ')
+        self.sql.execute('''select c.cid
+                        from customers c
+                        where c.cid=:cid
+                        and c.pwd=:pwd''',
+                        {'cid':cid, 'pwd':password})
+        response = self.sql.fetchall()
+        print(response)
 
     def agent_login(self):
-        print('agent_login')
+        print('Agent Login')
+        aid = input('ID: ')
+        password = input('Password: ')
+        self.sql.execute('''select a.aid
+                                from agents a
+                                where a.aid=:aid
+                                and a.pwd=:pwd''',
+                         {'aid': aid, 'pwd': password})
+        response = self.sql.fetchall()
+        print(response)
 
     def logout(self):
         print('logout')
@@ -41,4 +66,4 @@ class Interface:
         print('register')
 
     def exit(self):
-        print('exit')
+        print('Exited Program')
