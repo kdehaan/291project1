@@ -45,7 +45,7 @@ class Interface:
         print('Place an order: p')
         print('List orders: l')
         print('Logout: o')
-        selection = input('Please select an action: ')
+        selection = input('Please select an action: ').lower()
 
         options = {'s': 'sp',
                    'p': 'po',
@@ -79,7 +79,7 @@ class Interface:
         print('Update a delivery: u')
         print('Add to stock: a')
         print('Logout: o')
-        selection = input('Please select an action: ')
+        selection = input('Please select an action: ').lower()
 
         options = {'s': 'sd',
                    'u': 'ud',
@@ -108,7 +108,7 @@ class Interface:
         print('Agent Login: a')
         print('Register: r')
         print('Exit Program: e')
-        selection = input('Please select an action: ')
+        selection = input('Please select an action: ').lower()
 
         options = {'c': 'c',
                    'a': 'a',
@@ -132,7 +132,7 @@ class Interface:
         if not response:
             print("Invalid ID or Password")
             time.sleep(0.4)
-            state = input("Try again? [y/n]: ")
+            state = input("Try again? [y/n]: ").lower()
             if state == 'n':
                 return 'l'
             else:
@@ -156,7 +156,7 @@ class Interface:
         if not response:
             print("Invalid ID or Password")
             time.sleep(0.4)
-            state = input("Try again? [y/n]: ")
+            state = input("Try again? [y/n]: ").lower()
             if state == 'n':
                 return 'l'
             else:
