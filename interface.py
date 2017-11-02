@@ -1,3 +1,4 @@
+import time
 
 
 class Interface:
@@ -23,11 +24,12 @@ class Interface:
     def run(self):
 
         while True:
-            selection = self.states[self.state]()
+            selection = self.states[self.state]().lower()
             if selection in self.states:
                 self.state = selection
             else:
                 print("Invalid Selection")
+                time.sleep(0.4)
 
     def login_screen(self):
         print('\n~~~~ Login Menu ~~~~')
@@ -43,8 +45,10 @@ class Interface:
                    'o': 'o',
                    'r': 'r',
                    'e': 'e'}
-
-        return options[selection].lower()
+        try:
+            return options[selection]
+        except KeyError:
+            return 'invalid'
 
     def customer_login(self):
         print('\n~~~~ Customer Login ~~~~~')
@@ -58,6 +62,7 @@ class Interface:
         response = self.sql.fetchall()
         if not response:
             print("Invalid ID or Password")
+            time.sleep(0.4)
             state = input("Try again? [y/n]")
             if state == 'n':
                 return 'l'
@@ -79,6 +84,7 @@ class Interface:
         response = self.sql.fetchall()
         if not response:
             print("Invalid ID or Password")
+            time.sleep(0.4)
             state = input("Try again? [y/n]")
             if state == 'n':
                 return 'l'
