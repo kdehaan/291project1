@@ -16,11 +16,11 @@ class Interface:
         print('Register: r')
         print('Exit Program: e')
         response = input('Please select an action: ')
-        options = {'c': self.customer_login(),
-                   'a': self.agent_login(),
-                   'l': self.logout(),
-                   'r': self.register(),
-                   'e': self.exit(),
+        options = {'c': self.customer_login,
+                   'a': self.agent_login,
+                   'l': self.logout,
+                   'r': self.register,
+                   'e': self.exit,
                    }
         try:
             options[response]()
