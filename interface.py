@@ -57,13 +57,16 @@ class Interface:
             return 'invalid'
 
     def search_products(self):
-        print('search_products')
+        print('~~~~ Product Search ~~~~')
+        # TODO
 
     def place_order(self):
-        print('place_order')
+        print('~~~~ Place an Order ~~~~')
+        # TODO
 
     def list_orders(self):
-        print('list_orders')
+        print('~~~~ View Orders ~~~~')
+        # TODO
 
     def agent_menu(self):
         print('\n~~~~ Agent Menu ~~~~')
@@ -83,13 +86,16 @@ class Interface:
             return 'invalid'
 
     def set_delivery(self):
-        print('set_delivery')
+        print('~~~~ Create Delivery ~~~~')
+        # TODO
 
     def update_delivery(self):
-        print('update_delivery')
+        print('~~~~ Update Delivery ~~~~')
+        # TODO
 
     def add_stock(self):
-        print('add_stock')
+        print('~~~~ Add to Stock ~~~~')
+        # TODO
 
     def login_menu(self):
         print('\n~~~~ Login Menu ~~~~')
