@@ -1,63 +1,92 @@
-import os
-import time
 
 
 class Interface:
     """
     Controller class to manage user input
     """
-    userID = -1;
-    is_agent = 0;
+    userID = -1
+    is_agent = 0
+    states = {}  # contains the state machine
+    state = 'l'
 
     def __init__(self, conn, sql):
         self.conn = conn
         self.sql = sql
+        self.states = {'l': self.login_screen,
+                       'c': self.customer_login,
+                       'a': self.agent_login,
+                       'o': self.logout,
+                       'r': self.register,
+                       'e': self.exit}
+        self.run()
+
+    def run(self):
+
+        while True:
+            selection = self.states[self.state]()
+            if selection in self.states:
+                self.state = selection
+            else:
+                print("Invalid Selection")
 
     def login_screen(self):
-        os.system('clear')
-        print('Login Menu')
+        print('\n~~~~ Login Menu ~~~~')
         print('Customer Login: c')
         print('Agent Login: a')
-        print('Logout: l')
+        print('Logout: o')
         print('Register: r')
         print('Exit Program: e')
-        response = input('Please select an action: ')
-        options = {'c': self.customer_login,
-                   'a': self.agent_login,
-                   'l': self.logout,
-                   'r': self.register,
-                   'e': self.exit,
-                   }
-        try:
-            options[response]()
-        except KeyError:
-            print('Invalid Input, please try again')
-            time.sleep(1.5)
-            self.login_screen()
+        selection = input('Please select an action: ')
+
+        options = {'c': 'c',
+                   'a': 'a',
+                   'o': 'o',
+                   'r': 'r',
+                   'e': 'e'}
+
+        return options[selection].lower()
 
     def customer_login(self):
-        print('Customer Login')
+        print('\n~~~~ Customer Login ~~~~~')
         cid = input('ID: ')
         password = input('Password: ')
         self.sql.execute('''select c.cid
                         from customers c
                         where c.cid=:cid
                         and c.pwd=:pwd''',
-                        {'cid':cid, 'pwd':password})
+                        {'cid': cid, 'pwd': password})
         response = self.sql.fetchall()
-        print(response)
+        if not response:
+            print("Invalid ID or Password")
+            state = input("Try again? [y/n]")
+            if state == 'n':
+                return 'l'
+            else:
+                return 'c'
+        else:
+            print(response[0])
+            return 'l'
 
     def agent_login(self):
-        print('Agent Login')
+        print('\n~~~~ Agent Login ~~~~')
         aid = input('ID: ')
         password = input('Password: ')
-        self.sql.execute('''select a.name
+        self.sql.execute('''select a.name, a.aid
                                 from agents a
                                 where a.aid=:aid
                                 and a.pwd=:pwd''',
                          {'aid': aid, 'pwd': password})
         response = self.sql.fetchall()
-        print(response)
+        if not response:
+            print("Invalid ID or Password")
+            state = input("Try again? [y/n]")
+            if state == 'n':
+                return 'l'
+            else:
+                return 'a'
+        else:
+            print(response[0])
+            return 'l'
 
     def logout(self):
         print('logout')
