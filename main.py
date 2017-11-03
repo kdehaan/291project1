@@ -1,5 +1,5 @@
 import sqlite3
-from sqlite3 import OperationalError
+from sqlite3 import OperationalError, IntegrityError
 import interface
 
 conn = sqlite3.connect('./data.db')
@@ -22,7 +22,10 @@ def sql_from_file(filename):
         try:
             sql.execute(command)
         except OperationalError:
-            print("SQL Error: Command skipped")
+            print("SQL Error: Command skipped: " + command)
+        except IntegrityError:
+            print(command + " Integrity Error")
+            return
     conn.commit()
 
 

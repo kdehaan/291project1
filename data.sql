@@ -10,7 +10,8 @@ INSERT INTO customers VALUES
     ("c5", "Sam", "5555, 5 ave", "5pass"),
     ("c6", "Gillian", "6666, 6 ave", "6pass"),
     ("c7", "Liam", "7777, 7 ave", "7pass"),
-    ("c8", "Betty", "8888, 8 ave", "8pass");
+    ("c8", "Betty", "8888, 8 ave", "8pass"),
+    ("c9", "Fred", "9999, 9 ave", "9pass");
 
 -- Schema: cat* (char(3)), name (text)
 INSERT INTO categories VALUES
@@ -21,7 +22,7 @@ INSERT INTO categories VALUES
     ("mea", "Meat"),
     ("she", "Shelf"),
     ("tex", "Textiles"),
-    ("oth", "Other"),
+    ("oth", "Other");
     
     
 -- Schema: pid* (char(6)), name (text), unit (text), cat (char(3))
@@ -53,14 +54,26 @@ INSERT INTO products VALUES
     ("oth2", "Headphones", "ea", "oth"),
     ("oth9", "PlayStation 4", "ea", "oth");
     
+-- Schema: sid* (int), name (text), phone (text), address (text)
+INSERT INTO stores VALUES
+    (0, "0store", "000-0000", "0000 0 st"),
+    (1, "1store", "111-1111", "1111 1 st"),
+    (2, "2store", "222-3333", "2222 2 st"),
+    (3, "3store", "333-3333", "3333 3 st"),
+    (4, "4store", "444-4444", "4444 4 st"),
+    (5, "5store", "555-5555", "5555 5 st"),
+    (6, "6store", "666-6666", "6666 6 st"),
+    (7, "7store", "777-7777", "7777 7 st"),
+    (8, "8store", "888-8888", "8888 8 st"),
+    (9, "9store", "999-9999", "9999 9 st");    
+
 -- Schema: sid* (int), pid* (char6), qty (int), uprice (real)
 INSERT INTO carries VALUES
-    /* Unique Stock Cases: T&T has two unique items */
     (3, "oth9", 5, 399.99),
     (7, "del9", 10, 8.99),
     (5, "mea9", 15, 3.99),
     (5, "pro9", 20, 1.99),
-
+    
     (0, "bak0", 10, 3.29),
     (0, "bak1", 25, 4.99),
     (0, "bak2", 33, 5.99),
@@ -95,26 +108,34 @@ INSERT INTO carries VALUES
     (7, "dai0", 23, 5.19),
     (7, "mea1", 20, 12.99),
     (7, "tex0", 200, 7.99);
+
     
-    
--- Schema: sid* (int), name (text), phone (text), address (text)
-INSERT INTO stores VALUES
-    (0, "0store", "000-0000", "0000 0 st"),
-    (1, "1store", "111-1111", "1111 1 st"),
-    (2, "2store", "222-3333", "2222 2 st"),
-    (3, "3store", "333-3333", "3333 3 st"),
-    (4, "4store", "444-4444", "4444 4 st"),
-    (5, "5store", "555-5555", "5555 5 st"),
-    (6, "6store", "666-6666", "6666 6 st"),
-    (7, "7store", "777-7777", "7777 7 st"),
-    (8, "8store", "888-8888, "8888 8 st"),
-    (9, "9store", "999-9999", "9999 9 st");
-    
+-- Schema: oid* (int), cid (text), odate (date), address (text)
+INSERT INTO orders VALUES
+    (1000, "c0", DATETIME("now", "-8 days"), "His House, Probably"),
+    (1001, "c0", DATETIME("now", "-6 days"), "His House, Probably"),
+    (1010, "c1", DATETIME("now", "-5 days"), "Not Edmonton"),
+    (1011, "c1", DATETIME("now", "-2 days"), "Not Edmonton"),
+    (1020, "c2", DATETIME("now", "-6 days"), "Chez Puck"),
+    (1021, "c2", DATETIME("now", "-1 days"), "Chez Puck"),
+    (1030, "c3", DATETIME("now", "-3 days"), "Everywhere"),
+    (1031, "c3", DATETIME("now", "-2 days"), "Everywhere"),
+    (1040, "c4", DATETIME("now", "-13 days"), "Middle of the Ocean"),
+    (1041, "c4", DATETIME("now", "-5 days"), "Middle of the Ocean"),
+    (1050, "c5", DATETIME("now", "-7 days"), "On a Farm"),
+    (1051, "c5", DATETIME("now", "-1 days"), "On a Farm"),
+    (1060, "c6", DATETIME("now", "-20 days"), "In a Lab, Maybe"),
+    (1061, "c6", DATETIME("now", "-10 days"), "In a Lab, Maybe"),
+    (1070, "c7", DATETIME("now", "-5 hours"), "Swamp"),
+    (1071, "c7", DATETIME("now", "-2 hours"), "Swamp"),
+    (1080, "c8", DATETIME("now", "-5 days"), "Nobody Cares"),
+    (1081, "c8", DATETIME("now", "-4 days"), "Nobody Cares"),
+    (1090, "c9", DATETIME("now"), "Nowhere"),
+    (1091, "c9", DATETIME("now", "-1 hour"), "Nowhere"),
+    (1092, "c9", DATETIME("now", "-2 days"), "Nowhere");
     
 -- Schema: oid* (int), sid* (int), pid* (char6), qty (int), uprice (real)
 INSERT INTO olines VALUES
-
-    /* 1000: Same dairy, different stores */
     (1000, 0, "dai1", 1, 5.89),
     (1000, 2, "dai1", 1, 6.23),
     (1000, 4, "mea1", 2, 12.99),
@@ -122,26 +143,22 @@ INSERT INTO olines VALUES
     (1001, 0, "mea1", 1, 12.99),
     (1001, 7, "del9", 1, 7.99),
     
-    /* 1010, 1011: All orders with one store, not Walmart*/
     (1010, 7, "mea1", 1, 12.99),
     (1010, 7, "tex0", 1, 7.99),
     (1010, 7, "del9", 1, 7.99),
     (1011, 7, "mea1", 1, 12.99),
     (1011, 7, "del9", 1, 7.99),
-
-    /* 1020, 1021: Different dairy, different stores, different orders */    
+ 
     (1020, 6, "dai1", 2, 5.99),
     (1020, 7, "tex0", 1, 7.99),
     (1020, 7, "del9", 1, 7.99),
     (1021, 0, "dai2", 5, 3.99),
     
-    /* 1030: All orders with one store, all one Walmart */
     (1030, 3, "mea1", 2, 12.99),
     (1030, 3, "tex0", 1, 7.99),
     (1030, 3, "del9", 1, 7.99),
     (1031, 3, "mea1", 1, 12.99),
     
-    /* 1041: Different dairy, same store */
     (1040, 1, "mea1", 5, 11.23),
     (1040, 7, "tex0", 1, 7.99),
     (1041, 0, "dai0", 2, 5.29),
@@ -149,27 +166,21 @@ INSERT INTO olines VALUES
     (1041, 2, "mea1", 4, 13.00),
     (1041, 7, "del9", 1, 7.99),
     
-    /* 1051, 1051: All orders with Walmart, two different locations */
     (1050, 3, "mea1", 1, 12.99),
     (1050, 6, "del2", 1, 7.99),
     (1050, 3, "tex0", 1, 7.99),
     (1051, 6, "mea1", 1, 12.99),
     (1051, 3, "del2", 1, 7.99),
-    
-    /* 1060: Different dairy, different stores */
+
     (1060, 0, "dai2", 2, 3.99),
     (1060, 7, "tex0", 1, 7.99),
     (1060, 7, "dai0", 1, 5.19),
     (1061, 0, "mea1", 1, 12.99),
     
-    /* 1070: All orders with one store, not Walmart */
     (1070, 0, "mea1", 1, 11.23),
     (1070, 0, "tex0", 1, 6.99),
     (1071, 0, "mea1", 1, 11.23),
-    (1072, 0, "del0", 2, 3.99),
-    (1073, 0, "mea2", 5, 6.99),
     
-    /* 1080: Every dairy, multiple stores */
     (1080, 0, "dai0", 1, 5.50),
     (1080, 1, "dai1", 1, 5.99),
     (1080, 2, "dai2", 1, 3.69),
@@ -179,10 +190,15 @@ INSERT INTO olines VALUES
     (1081, 0, "mea1", 1, 12.99),
     (1081, 7, "del9", 1, 7.99),
     
-    /* All orders not with Walmart but not one store */
     (1090, 0, "mea1", 1, 1.99),
     (1090, 7, "tex0", 1, 1.99),
     (1091, 0, "mea1", 1, 1.99),
     (1092, 0, "mea1", 1, 1.99),
     (1092, 7, "del9", 1, 1.99);
+    
+-- trackingNo* (int), oid* (int), pickUpTime (date), dropOffTime (date)
+INSERT INTO deliveries VALUES
+    (190, 1090, DATETIME("now"), NULL),
+    (191, 1091, DATETIME("now", "-1 hour"), DATETIME("now")),
+    (192, 1092, DATETIME("now", "-2 days"), NULL);
 
