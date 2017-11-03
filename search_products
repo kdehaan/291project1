@@ -1,0 +1,16 @@
+select p.name, p.cat
+from products p
+where p.name like '%ea%'
+or p.name like '%Wh%'
+order by (
+	case
+	when p.name like '%ea%' then 1
+	else 0
+	end
+	+
+	case
+	when p.name like '%Wh%' then 1
+	else 0
+	end
+	) desc
+limit 5;

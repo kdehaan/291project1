@@ -2,6 +2,7 @@
 
 -- Schema: cid* (text), name (text), address(text), pwd (text)
 INSERT INTO customers VALUES
+    ("c", "test", "none", "c"),
     ("c0", "Oliver", "0000, 0 ave", "0pass"),
     ("c1", "Isabel", "1111, 1 ave", "1pass"),
     ("c2", "Zack", "2222, 2 ave", "2pass"),

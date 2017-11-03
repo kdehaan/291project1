@@ -59,9 +59,32 @@ class Interface:
     def search_products(self):
         print('~~~~ Product Search ~~~~')
         print('Multiple keywords separated by spaces may be entered')
-        keywords = input('Enter keyword(s) to search for: ')
-        for keyword in keywords:
-            print(keyword)
+        keywords = input('Enter keyword(s) to search for: ').split()
+
+        query = '''select p.name, p.pid
+                   from products p
+                   where p.name like '%%%s%%' ''' % (keywords[0])
+        for keyword in keywords[1:]:
+            query = query + '''or p.name like '%%%s%%' ''' % keyword
+        query = query + '''order by ( 
+                           case
+                           when p.name like '%%%s%%' then 1
+                           else 0
+                           end ''' % (keywords[0])
+        for keyword in keywords[1:]:
+            query = query + '''+
+                               case
+                               when p.name like '%%%s%%' then 1
+                               else 0
+                               end ''' % keyword
+        query = query + ''') desc limit 5'''
+        self.sql.execute(query)
+        result = self.sql.fetchall()
+        print('\n-- Results Found --')
+        index = 1
+        for row in result:
+            print(str(index) + ' ' + ' ' + row[0])
+            index = index + 1
 
         return 'cm'
 
