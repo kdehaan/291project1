@@ -4,11 +4,13 @@ import time
 class Interface:
     """
     Controller class to manage user input
+    It's technically OO but not really, might as well be functional tbh
     """
     userID = -1
     is_agent = False
     states = {}  # contains the state machine states
     state = 'l'  # init state machine on login menu
+    delay = 0.4
 
     def __init__(self, conn, sql):
         self.conn = conn
@@ -36,8 +38,8 @@ class Interface:
             elif selection == 'quit':
                 return
             else:  # remains in same state if invalid input detected
-                print("Invalid Selection")
-                time.sleep(0.4)
+                print("Invalid Entry")
+                time.sleep(self.delay)
 
     def customer_menu(self):
         print('\n~~~~ Customer Menu ~~~~')
@@ -56,10 +58,52 @@ class Interface:
         except KeyError:
             return 'invalid'
 
+    def product_details(self, product_name):
+
+        self.sql.execute('''select p.pid, p.unit
+                            from products p
+                            where p.name =:name''',
+                         {'name': product_name})
+        basic_details = self.sql.fetchall()
+
+        self.sql.execute('''select count(c.sid), min(c.uprice)
+                            from products p, carries c
+                            where p.name =:name
+                            and c.pid = p.pid;''',
+                         {'name': product_name})
+        all_stores = self.sql.fetchall()
+
+        self.sql.execute('''select count(c.sid), min(c.uprice)
+                            from products p, carries c
+                            where p.name =:name
+                            and c.pid = p.pid
+                            and c.qty > 0;''',
+                         {'name': product_name})
+        in_stock = self.sql.fetchall()
+
+        self.sql.execute('''select count(o.oid)
+                            from products p, olines ol, orders o
+                            where p.name =:name
+                            and p.pid = ol.pid
+                            and ol.oid = o.oid
+                            and o.odate < DATETIME("now", "-7 days");''',
+                         {'name': product_name})
+        recent_orders = self.sql.fetchall()
+
+        print(basic_details)
+        print(all_stores)
+        print(in_stock)
+        print(recent_orders)
+
     def search_products(self):
-        print('~~~~ Product Search ~~~~')
+        print('\n~~~~ Product Search ~~~~')
         print('Multiple keywords separated by spaces may be entered')
         keywords = input('Enter keyword(s) to search for: ').split()
+        if not keywords:
+            return 'error'
+        for keyword in keywords:
+            if not keyword.isalnum():
+                return 'error'
 
         query = '''select p.name, p.pid
                    from products p
@@ -80,20 +124,32 @@ class Interface:
         query = query + ''') desc limit 5'''
         self.sql.execute(query)
         result = self.sql.fetchall()
-        print('\n-- Results Found --')
-        index = 1
-        for row in result:
-            print(str(index) + ' ' + ' ' + row[0])
-            index = index + 1
+        if result:
+            print('\n-- Results Found --')
+            index = 1
+            for row in result:
+                print(str(index) + ' ' + ' ' + row[0])
+                self.product_details(row[0])
+                index = index + 1
+            sel = input('\nEnter a number to view details, or r to return: ')
+            if sel == 'r':
+                return 'cm'
+            else:
+                # TODO
+                return 'cm'
+
+        else:
+            print('\n-- No Results Found --')
+            time.sleep(self.delay)
 
         return 'cm'
 
     def place_order(self):
-        print('~~~~ Place an Order ~~~~')
+        print('\n~~~~ Place an Order ~~~~')
         # TODO
 
     def list_orders(self):
-        print('~~~~ View Orders ~~~~')
+        print('\n~~~~ View Orders ~~~~')
         # TODO
 
     def agent_menu(self):
@@ -114,15 +170,15 @@ class Interface:
             return 'invalid'
 
     def set_delivery(self):
-        print('~~~~ Create Delivery ~~~~')
+        print('\n~~~~ Create Delivery ~~~~')
         # TODO
 
     def update_delivery(self):
-        print('~~~~ Update Delivery ~~~~')
+        print('\n~~~~ Update Delivery ~~~~')
         # TODO
 
     def add_stock(self):
-        print('~~~~ Add to Stock ~~~~')
+        print('\n~~~~ Add to Stock ~~~~')
         # TODO
 
     def login_menu(self):
@@ -154,7 +210,7 @@ class Interface:
         response = self.sql.fetchall()
         if not response:
             print("Invalid ID or Password")
-            time.sleep(0.4)
+            time.sleep(self.delay)
             state = input("Try again? [y/n]: ").lower()
             if state == 'n':
                 return 'l'
@@ -178,7 +234,7 @@ class Interface:
         response = self.sql.fetchall()
         if not response:
             print("Invalid ID or Password")
-            time.sleep(0.4)
+            time.sleep(self.delay)
             state = input("Try again? [y/n]: ").lower()
             if state == 'n':
                 return 'l'
@@ -194,11 +250,11 @@ class Interface:
         self.is_agent = False
         print("-- Logged out of " + self.userID + ' --')
         self.userID = -1
-        time.sleep(0.4)
+        time.sleep(self.delay)
         return 'l'
 
     def register(self):
-        print('~~~~ New Customer ~~~~')
+        print('\n~~~~ New Customer ~~~~')
         cid = input('CID: ')
         self.sql.execute('''select c.cid
                             from customers c
@@ -216,7 +272,7 @@ class Interface:
                          {'cid': cid, 'name': name, 'address': address, 'password': password})
         self.conn.commit()
         print("\n-- User Successfully Registered --")
-        time.sleep(0.4)
+        time.sleep(self.delay)
         return 'l'
 
     def exit(self):

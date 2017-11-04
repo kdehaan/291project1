@@ -96,7 +96,7 @@ INSERT INTO carries VALUES
     (2, "del0", 5, 4.22),
     (2, "dai1", 12, 6.23),
     (2, "dai2", 33, 3.69),
-    (2, "mea1", 56, 13.00),
+    (2, "mea1", 0, 13.00),
     
     (3, "mea1", 99, 12.99),
     (3, "tex0", 12, 7.99),
@@ -107,8 +107,8 @@ INSERT INTO carries VALUES
     (6, "mea1", 200, 12.99),
     
     (7, "dai0", 23, 5.19),
-    (7, "mea1", 20, 12.99),
-    (7, "tex0", 200, 7.99);
+    (7, "mea1", 0, 5.00),
+    (7, "tex0", 0, 7.99);
 
     
 -- Schema: oid* (int), cid (text), odate (date), address (text)
