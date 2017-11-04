@@ -11,6 +11,7 @@ class Interface:
     states = {}  # contains the state machine states
     state = 'l'  # init state machine on login menu
     delay = 0.4
+    selected_product = '-1'
 
     def __init__(self, conn, sql):
         self.conn = conn
@@ -20,6 +21,7 @@ class Interface:
                        'a': self.agent_login,
                        'cm': self.customer_menu,
                        'sp': self.search_products,
+                       'ps': self.product_submenu,
                        'po': self.place_order,
                        'lo': self.list_orders,
                        'am': self.agent_menu,
@@ -58,20 +60,24 @@ class Interface:
         except KeyError:
             return 'invalid'
 
+    def product_submenu(self):
+        print('\n~~~~ Product Menu: ' + self.selected_product + ' ~~~~')
+        return 'cm'
+
     def product_details(self, product_name):
 
         self.sql.execute('''select p.pid, p.unit
                             from products p
                             where p.name =:name''',
                          {'name': product_name})
-        basic_details = self.sql.fetchall()
+        basic_details = self.sql.fetchall()[0]
 
         self.sql.execute('''select count(c.sid), min(c.uprice)
                             from products p, carries c
                             where p.name =:name
                             and c.pid = p.pid;''',
                          {'name': product_name})
-        all_stores = self.sql.fetchall()
+        all_stores = self.sql.fetchall()[0]
 
         self.sql.execute('''select count(c.sid), min(c.uprice)
                             from products p, carries c
@@ -79,7 +85,7 @@ class Interface:
                             and c.pid = p.pid
                             and c.qty > 0;''',
                          {'name': product_name})
-        in_stock = self.sql.fetchall()
+        in_stock = self.sql.fetchall()[0]
 
         self.sql.execute('''select count(o.oid)
                             from products p, olines ol, orders o
@@ -88,12 +94,16 @@ class Interface:
                             and ol.oid = o.oid
                             and o.odate < DATETIME("now", "-7 days");''',
                          {'name': product_name})
-        recent_orders = self.sql.fetchall()
+        recent_orders = self.sql.fetchall()[0]
 
-        print(basic_details)
-        print(all_stores)
-        print(in_stock)
-        print(recent_orders)
+        print('     PID: ' + basic_details[0])
+        print('     Unit: ' + basic_details[1])
+        if all_stores[0] == 0:
+            print('     No Stores carry this item')
+        else:
+            print('     ' + str(all_stores[0]) + ' stores carry this, lowest price: ' + str(all_stores[1]))
+            print('     ' + str(in_stock[0]) + ' stores have this in stock, lowest price: ' + str(in_stock[1]))
+        print('     There have been ' + str(recent_orders[0]) + ' orders for this in the last 7 days')
 
     def search_products(self):
         print('\n~~~~ Product Search ~~~~')
@@ -128,15 +138,17 @@ class Interface:
             print('\n-- Results Found --')
             index = 1
             for row in result:
-                print(str(index) + ' ' + ' ' + row[0])
+                print('\n[' + str(index) + '] ' + row[0])
                 self.product_details(row[0])
                 index = index + 1
             sel = input('\nEnter a number to view details, or r to return: ')
             if sel == 'r':
                 return 'cm'
+            elif sel in {'1', '2', '3', '4', '5'}:
+                self.selected_product = result[int(sel)-1][0]
+                return 'ps'
             else:
-                # TODO
-                return 'cm'
+                return 'error'
 
         else:
             print('\n-- No Results Found --')
