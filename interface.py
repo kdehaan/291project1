@@ -221,7 +221,7 @@ class Interface:
                         self.basket.remove(item)
                     elif answer == 'c':
                         answer = input('Please enter the new amount you wish to order')
-                        if answer.isint():
+                        if self.hasint(answer):
                             if answer >= 0:
                                 item[2] = int(answer)
                             print('Quantity updated!')
@@ -235,7 +235,7 @@ class Interface:
         print(' ')
         print('~~~~ View Orders ~~~~')
         self.sql.execute('''select o.oid, o.odate, sum(l.qty), sum(l.qty * l.uprice)
-                            from olines l, order o
+                            from olines l, orders o
                             where l.oid = o.oid''')
         ordr = self.sql.fetchall()
         done = False
@@ -250,11 +250,12 @@ class Interface:
                         counter += 1
                     elif answer == 'l':
                         counter -= 1
-                    print(str(counter) + '      ' + str(ordr[counter][0]) + '     ' + str(ordr[counter][1]) + '       ' + str(ordr[counter][2]) + '       ' + str(ordr[counter][3]))
+                    print(str(counter) + '          ' + str(ordr[counter][0]) + '           ' + str(ordr[counter][1]) + '        '
+                          + str(ordr[counter][2]) + '                      ' + str(ordr[counter][3]))
                 if len(ordr) - 5 > counter > 3:
                     answer = input('Enter an entry number to see more information, "m" to see more, or "l" to see '
                                    'previous orders, or "q" to quit: ')
-                    if answer.isint():
+                    if self.hasint(answer):
                         pass
                     elif answer.lower() == 'l':
                         pass
@@ -264,16 +265,15 @@ class Interface:
                         answer = 'q'
                 elif counter < len(ordr) - 5:
                     answer = input('Enter an entry number to see more information, "m" to see more, or "q" to quit: ')
-                    if answer.isint():
+                    if self.hasint(answer):
                         pass
                     elif answer.lower() == 'm':
                         pass
                     else:
                         answer = 'q'
                 elif counter > 3:
-                    answer = input('Enter an entry number to see more information, or "l" to see previous orders, '
-                                   'or "q" to quit: ')
-                    if answer.isint():
+                    answer = input('Enter an entry number to see more information, or "l" to see previous orders, or "q" to quit: ')
+                    if self.hasint(answer):
                         pass
                     elif answer.lower() == 'l':
                         pass
@@ -284,13 +284,14 @@ class Interface:
             else:
                 for i in range(0, len(ordr)):
                     counter += 1
-                    print(str(counter) + '      ' + str(ordr[counter][0]) + '     ' + str(ordr[counter][1]) + '       ' + str(ordr[counter][2]) + '       ' + str(ordr[counter][3]))
+                    print(str(counter) + '              ' + str(ordr[counter][0]) + '      ' + str(ordr[counter][1]) + '    '
+                          + str(ordr[counter][2]) + '                ' + str(ordr[counter][3]))
                 answer = input('Enter an entry number to see more information, or "q" to quit: ')
-                if answer.isint():
+                if self.hasint(answer):
                     pass
                 else:
                     return 'cm'
-            if answer.isint():
+            if self.hasint(answer):
                 done = True
         if answer >= len(ordr) or answer < 0:
             return 'cm'
@@ -309,6 +310,13 @@ class Interface:
                 totalprice += (i[8] * i[9])
             print('----------------------------------- Order Total: ' + str(totalprice))
             return 'cm'
+
+    def hasint(answer):
+        try:
+            int(answer)
+            return True
+        except ValueError:
+            return False
 
     def agent_menu(self):
         print('\n~~~~ Agent Menu ~~~~')
