@@ -165,7 +165,7 @@ class Interface:
         else:
             print(' ')
             print('~~~~ Place an Order ~~~~')
-            # self.basket_check()
+            self.basket_check()
             totalCost = 0
             for item in self.basket:
                 cost = item[2] * item[4]
@@ -190,14 +190,13 @@ class Interface:
                              {'oid': oid, 'cname': self.userID, 'address': address})
 
             for item in self.basket:
-                self.sql.execute('''update qty
-                                    set qty -= :sold
-                                    from carries c
-                                    where c.pid = :pid;''',
-                                 {'pid': item[0], 'sold': item[2]})
+                self.sql.execute('''update carries
+                                    set qty = qty - :sold
+                                    where pid = :pid  and sid = :sid;''',
+                                 {'pid': item[0], 'sold': item[2], 'sid': item[1]})
 
                 self.sql.execute('''insert into olines values
-                                    (:oid, :sid, :pid, :qty, :uprice;''',
+                                    (:oid, :sid, :pid, :qty, :uprice);''',
                                  {'oid': oid, 'sid': item[1], 'pid': item[0], 'qty': item[2], 'uprice': item[4]})
             self.conn.commit()
             self.basket = []
@@ -209,27 +208,28 @@ class Interface:
         for item in self.basket:
             if item[2] < 1:
                 self.basket.remove(item)
-            self.sql.execute('''select qty
-                                from carries c
-                                where c.sid = isid and c.pid = ipid''',
-                             {'isid': item[1], 'ipid': item[0]})
-            count = self.sql.getOne()
-            if count < item [2]:
-                print('The store you are ordering ' + item[3] + ' from has ' + str(count) + ' in stock.')
-                answer = input('Would you like to remove this item (r), or change the quantity of this item (c)?').lower()
-                if answer == 'r':
-                    self.basket.remove(item)
-                elif answer == 'c':
-                    answer = input('Please enter the new amount you wish to order')
-                    if answer.isint():
-                        if answer >= 0:
-                            item[2] = int(answer)
-                        print('Quantity updated!')
+            else:
+                self.sql.execute('''select qty
+                                    from carries c
+                                    where c.sid = :isid and c.pid = :ipid''',
+                                 {'isid': item[1], 'ipid': item[0]})
+                (count,) = self.sql.fetchall()[0]
+                if count < item [2]:
+                    print('The store you are ordering ' + item[3] + ' from has ' + str(count) + ' in stock.')
+                    answer = input('Would you like to remove this item (r), or change the quantity of this item (c)?').lower()
+                    if answer == 'r':
+                        self.basket.remove(item)
+                    elif answer == 'c':
+                        answer = input('Please enter the new amount you wish to order')
+                        if answer.isint():
+                            if answer >= 0:
+                                item[2] = int(answer)
+                            print('Quantity updated!')
+                        else:
+                            print('Invalid input. Integer expected.')
                     else:
-                        print('Invalid input. Integer expected.')
-                else:
-                    print('invalid input')
-                self.self.basket_check()
+                        print('invalid input')
+                    self.self.basket_check()
 
     def list_orders(self):
         print(' ')
@@ -359,7 +359,7 @@ class Interface:
     def customer_login(self):
         print('\n~~~~ Customer Login ~~~~~')
         cid = input('CID: ')
-        self.basket = [['abcd', 'storeid', 4, 'Practice item', 6.00]]
+        self.basket = [['dai0', 0, 4, 'Milk, Whole, Jug', 6.00]]
         password = input('Password: ')
         self.sql.execute('''select c.name, c.cid
                             from customers c
