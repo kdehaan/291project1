@@ -186,7 +186,7 @@ class Interface:
             (address,) = self.sql.fetchone()
 
             self.sql.execute('''insert into orders values
-                              (:oid, :cname, date(), :address);''',
+                              (:oid, :cname, DATETIME("now"), :address);''',
                              {'oid': oid, 'cname': self.userID, 'address': address})
 
             for item in self.basket:
@@ -243,7 +243,7 @@ class Interface:
         answer = 'm'
         while not done:
             print('Entry        OrderID      Date Placed       Items Ordered     Total Cost')
-            print('-----------------------------------------------------------')
+            print('------------------------------------------------------------------------')
             if len(ordr) > 5:
                 for i in range(0, 5):
                     if answer == 'm':
@@ -265,7 +265,7 @@ class Interface:
                 elif counter < len(ordr) - 5:
                     answer = input('Enter an entry number to see more information, "m" to see more, or "q" to quit: ')
                     if answer.isint():
-                        done = True
+                        pass
                     elif answer.lower() == 'm':
                         pass
                     else:
@@ -274,12 +274,12 @@ class Interface:
                     answer = input('Enter an entry number to see more information, or "l" to see previous orders, '
                                    'or "q" to quit: ')
                     if answer.isint():
-                        done = True
+                        pass
                     elif answer.lower() == 'l':
                         pass
                     else:
                         answer = 'q'
-                if answer.lower() == 'q':
+                if answer == 'q' or answer == 'Q':
                     return 'cm'
             else:
                 for i in range(0, len(ordr)):
@@ -290,19 +290,25 @@ class Interface:
                     pass
                 else:
                     return 'cm'
-            if answer >= len(ordr) or answer < 0:
-                return 'cm'
-            else:
-                self.sql.execute('''select d.trackingNo, d.pickUpTime, d.dropOffTime, o.address, l.sid, s.name, l.pid, p.name, l.qty, l.uprice
-                                        from olines l, orders o, deliveries d, stores s, products p
-                                        where l.oid = :oid and d.oid = l.oid and s.sid = l.sid and p.pid = l.pid;''',
-                                 {'oid': ordr[answer]})
-                info = self.sql.fetchall()
-                #for
-
-
-
-
+            if answer.isint():
+                done = True
+        if answer >= len(ordr) or answer < 0:
+            return 'cm'
+        else:
+            self.sql.execute('''select d.trackingNo, d.pickUpTime, d.dropOffTime, o.address, l.sid, s.name, l.pid, p.name, l.qty, l.uprice
+                                    from olines l, orders o, deliveries d, stores s, products p
+                                    where l.oid = :oid and d.oid = l.oid and s.sid = l.sid and p.pid = l.pid;''',
+                             {'oid': ordr[answer]})
+            info = self.sql.fetchall()
+            print('Tracking #: ' + str(info[0][0]) + '\n' + 'Pickup Time: ' + str(info[0][1]) + '\n' + 'Dropoff Time: ' + str(item[0][2]) + '\n' + 'Delivery Address: ' +
+                  str(item[0][3]) + '\n' + 'ORDER CONTENTS:')
+            totalprice = 0.00
+            for i in info:
+                print('Store ID: ' + str(i[4]) + '      Store Name: ' + str(i[5]) + '       Product ID: ' + str(i[6]) + '       Product Name: ' + str(i[7]) +
+                      '     Quantity: ' + str(i[8]) + '     Unit Price: ' + str(i[9]) + '       Price: ' + str(i[8] * i[9]))
+                totalprice += (i[8] * i[9])
+            print('----------------------------------- Order Total: ' + str(totalprice))
+            return 'cm'
 
     def agent_menu(self):
         print('\n~~~~ Agent Menu ~~~~')
