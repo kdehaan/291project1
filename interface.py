@@ -1,6 +1,5 @@
 import time
 
-basket = []
 
 class Interface:
     """
@@ -13,6 +12,7 @@ class Interface:
     state = 'l'  # init state machine on login menu
     delay = 0.4
     selected_product = '-1'
+    self.basket = []
 
     def __init__(self, conn, sql):
         self.conn = conn
@@ -159,8 +159,7 @@ class Interface:
         return 'cm'
 
     def place_order(self):
-        global basket
-        if not basket:
+        if not self.basket:
             print('Your basket is empty. Please choose at least one product before placing an order')
             return 'cm'
         else:
@@ -168,7 +167,7 @@ class Interface:
             print('~~~~ Place an Order ~~~~')
             # self.basket_check()
             totalCost = 0
-            for item in basket:
+            for item in self.basket:
                 cost = item[2] * item[4]
                 print(str(item[3]) + ' : (' + str(item[2]) + ' x ' + str(item[4]) +  '$)   :   ' + str(cost) + '$')
                 totalCost += cost
@@ -190,7 +189,7 @@ class Interface:
                               (:oid, :cname, date(), :address);''',
                              {'oid': oid, 'cname': self.userID, 'address': address})
 
-            for item in basket:
+            for item in self.basket:
                 self.sql.execute('''update qty
                                     set qty -= :sold
                                     from carries c
@@ -199,28 +198,27 @@ class Interface:
 
                 self.sql.execute('''insert into olines values
                                     (:oid, :sid, :pid, :qty, :uprice;''',
-                                 {'oid': count, 'sid': item[1], 'pid': item[0], 'qty': item[2], 'uprice': item[4]})
+                                 {'oid': oid, 'sid': item[1], 'pid': item[0], 'qty': item[2], 'uprice': item[4]})
             self.conn.commit()
-            basket = []
-            print('Order placed. Your order id is ' + str(count))
+            self.basket = []
+            print('Order placed. Your order id is ' + str(oid))
 
         return 'cm'
 
     def basket_check(self):
-        global basket
-        for item in basket:
+        for item in self.basket:
             if item[2] < 1:
-                basket.remove(item)
+                self.basket.remove(item)
             self.sql.execute('''select qty
                                 from carries c
                                 where c.sid = isid and c.pid = ipid''',
                              {'isid': item[1], 'ipid': item[0]})
             count = self.sql.getOne()
             if count < item [2]:
-                print('The store you are ordering ' + item[3] + ' from has ' + str(qty) + ' in stock.')
+                print('The store you are ordering ' + item[3] + ' from has ' + str(count) + ' in stock.')
                 answer = input('Would you like to remove this item (r), or change the quantity of this item (c)?').lower()
                 if answer == 'r':
-                    basket.remove(item)
+                    self.basket.remove(item)
                 elif answer == 'c':
                     answer = input('Please enter the new amount you wish to order')
                     if answer.isint():
@@ -231,7 +229,7 @@ class Interface:
                         print('Invalid input. Integer expected.')
                 else:
                     print('invalid input')
-                self.basket_check()
+                self.self.basket_check()
 
     def list_orders(self):
         print(' ')
@@ -242,7 +240,7 @@ class Interface:
         ordr = self.sql.fetchall()
         done = False
         counter = -1
-        answer = m
+        answer = 'm'
         while not done:
             print('Entry        OrderID      Date Placed       Items Ordered     Total Cost')
             print('-----------------------------------------------------------')
@@ -354,8 +352,8 @@ class Interface:
         global currentid
         print('\n~~~~ Customer Login ~~~~~')
         cid = input('CID: ')
-        global basket
-        basket = [['abcd', 'storeid', 4, 'Practice item', 6.00]]
+        global self.basket
+        self.basket = [['abcd', 'storeid', 4, 'Practice item', 6.00]]
         password = input('Password: ')
         self.sql.execute('''select c.name, c.cid
                             from customers c
@@ -405,8 +403,8 @@ class Interface:
         self.is_agent = False
         print("-- Logged out of " + self.userID + ' --')
         self.userID = -1
-        global basket
-        basket = []
+        global self.basket
+        self.basket = []
         time.sleep(0.4)
         return 'l'
 
