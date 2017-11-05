@@ -12,7 +12,7 @@ class Interface:
     state = 'l'  # init state machine on login menu
     delay = 0.4
     selected_product = '-1'
-    self.basket = []
+    basket = []
 
     def __init__(self, conn, sql):
         self.conn = conn
@@ -251,8 +251,9 @@ class Interface:
                     elif answer == 'l':
                         counter -= 1
                     print(str(counter) + '      ' + str(ordr[counter][0]) + '     ' + str(ordr[counter][1]) + '       ' + str(ordr[counter][2]) + '       ' + str(ordr[counter][3]))
-                if counter < len(ordr) - 5 and counter > 3:
-                    answer = input('Enter an entry number to see more information, "m" to see more, or "l" to see previous orders, or "q" to quit: ')
+                if len(ordr) - 5 > counter > 3:
+                    answer = input('Enter an entry number to see more information, "m" to see more, or "l" to see '
+                                   'previous orders, or "q" to quit: ')
                     if answer.isint():
                         pass
                     elif answer.lower() == 'l':
@@ -270,7 +271,8 @@ class Interface:
                     else:
                         answer = 'q'
                 elif counter > 3:
-                    answer = input('Enter an entry number to see more information, or "l" to see previous orders, or "q" to quit: ')
+                    answer = input('Enter an entry number to see more information, or "l" to see previous orders, '
+                                   'or "q" to quit: ')
                     if answer.isint():
                         done = True
                     elif answer.lower() == 'l':
@@ -296,7 +298,7 @@ class Interface:
                                         where l.oid = :oid and d.oid = l.oid and s.sid = l.sid and p.pid = l.pid;''',
                                  {'oid': ordr[answer]})
                 info = self.sql.fetchall()
-                for
+                #for
 
 
 
@@ -349,10 +351,8 @@ class Interface:
             return 'invalid'
 
     def customer_login(self):
-        global currentid
         print('\n~~~~ Customer Login ~~~~~')
         cid = input('CID: ')
-        global self.basket
         self.basket = [['abcd', 'storeid', 4, 'Practice item', 6.00]]
         password = input('Password: ')
         self.sql.execute('''select c.name, c.cid
@@ -403,7 +403,6 @@ class Interface:
         self.is_agent = False
         print("-- Logged out of " + self.userID + ' --')
         self.userID = -1
-        global self.basket
         self.basket = []
         time.sleep(0.4)
         return 'l'
