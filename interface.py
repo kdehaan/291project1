@@ -1,5 +1,6 @@
 import time
 
+basket = []
 
 class Interface:
     """
@@ -26,11 +27,12 @@ class Interface:
                        'as': self.add_stock,
                        'o': self.logout,
                        'r': self.register,
-                       'e': self.exit}
+                       'e': self.exit
+                       }
 
     def run(self):
         while True:
-            selection = self.states[self.state]().lower()
+            selection = self.states[self.state]()
             if selection in self.states:
                 self.state = selection
             elif selection == 'quit':
@@ -58,20 +60,153 @@ class Interface:
 
     def search_products(self):
         print('~~~~ Product Search ~~~~')
-        print('Multiple keywords separated by spaces may be entered')
-        keywords = input('Enter keyword(s) to search for: ')
-        for keyword in keywords:
-            print(keyword)
-
         return 'cm'
 
     def place_order(self):
-        print('~~~~ Place an Order ~~~~')
-        # TODO
+        global basket
+        if not basket:
+            print('Your basket is empty. Please choose at least one product before placing an order')
+            return 'cm'
+        else:
+            print(' ')
+            print('~~~~ Place an Order ~~~~')
+            # self.basket_check()
+            totalCost = 0
+            for item in basket:
+                cost = item[2] * item[4]
+                print(str(item[3]) + ' : (' + str(item[2]) + ' x ' + str(item[4]) +  '$)   :   ' + str(cost) + '$')
+                totalCost += cost
+            print('-----------------')
+            print('Order total:     ' + str(totalCost) + '$')
+
+            self.sql.execute('''select count(*)
+                                from orders'''
+                                )
+            (oid,) = self.sql.fetchone()
+            oid += 1
+            self.sql.execute('''select address
+                                from customers
+                                where cid = :cid''',
+                            {'cid': self.userID})
+            (address,) = self.sql.fetchone()
+
+            self.sql.execute('''insert into orders values
+                              (:oid, :cname, date(), :address);''',
+                             {'oid': oid, 'cname': self.userID, 'address': address})
+
+            for item in basket:
+                self.sql.execute('''update qty
+                                    set qty -= :sold
+                                    from carries c
+                                    where c.pid = :pid;''',
+                                 {'pid': item[0], 'sold': item[2]})
+
+                self.sql.execute('''insert into olines values
+                                    (:oid, :sid, :pid, :qty, :uprice;''',
+                                 {'oid': count, 'sid': item[1], 'pid': item[0], 'qty': item[2], 'uprice': item[4]})
+            self.conn.commit()
+            basket = []
+            print('Order placed. Your order id is ' + str(count))
+
+        return 'cm'
+
+    def basket_check(self):
+        global basket
+        for item in basket:
+            if item[2] < 1:
+                basket.remove(item)
+            self.sql.execute('''select qty
+                                from carries c
+                                where c.sid = isid and c.pid = ipid''',
+                             {'isid': item[1], 'ipid': item[0]})
+            count = self.sql.getOne()
+            if count < item [2]:
+                print('The store you are ordering ' + item[3] + ' from has ' + str(qty) + ' in stock.')
+                answer = input('Would you like to remove this item (r), or change the quantity of this item (c)?').lower()
+                if answer == 'r':
+                    basket.remove(item)
+                elif answer == 'c':
+                    answer = input('Please enter the new amount you wish to order')
+                    if answer.isint():
+                        if answer >= 0:
+                            item[2] = int(answer)
+                        print('Quantity updated!')
+                    else:
+                        print('Invalid input. Integer expected.')
+                else:
+                    print('invalid input')
+                self.basket_check()
 
     def list_orders(self):
+        print(' ')
         print('~~~~ View Orders ~~~~')
-        # TODO
+        self.sql.execute('''select o.oid, o.odate, sum(l.qty), sum(l.qty * l.uprice)
+                            from olines l, order o
+                            where l.oid = o.oid''')
+        ordr = self.sql.fetchall()
+        done = False
+        counter = -1
+        answer = m
+        while not done:
+            print('Entry        OrderID      Date Placed       Items Ordered     Total Cost')
+            print('-----------------------------------------------------------')
+            if len(ordr) > 5:
+                for i in range(0, 5):
+                    if answer == 'm':
+                        counter += 1
+                    elif answer == 'l':
+                        counter -= 1:
+                    print(str(counter) + '      ' + str(ordr[counter][0]) + '     ' + str(ordr[counter][1]) + '       ' + str(ordr[counter][2]) + '       ' + str(ordr[counter][3]))
+                if counter < len(ordr) - 5 and counter > 3:
+                    answer = input('Enter an entry number to see more information, "m" to see more, or "l" to see previous orders, or "q" to quit: ')
+                    if answer.isint():
+                        pass
+                    elif answer.lower() == 'l':
+                        pass
+                    elif answer.lower() == 'm':
+                        pass
+                    else:
+                        answer = 'q'
+                elif counter < len(ordr) - 5:
+                    answer = input('Enter an entry number to see more information, "m" to see more, or "q" to quit: ')
+                    if answer.isint():
+                        done = True
+                    elif answer.lower() == 'm':
+                        pass
+                    else:
+                        answer = 'q'
+                elif counter > 3:
+                    answer = input('Enter an entry number to see more information, or "l" to see previous orders, or "q" to quit: ')
+                    if answer.isint():
+                        done = True
+                    elif answer.lower() == 'l':
+                        pass
+                    else:
+                        answer = 'q'
+                if answer.lower() == 'q':
+                    return 'cm'
+            else:
+                for i in range(0, len(ordr)):
+                    counter += 1
+                    print(str(counter) + '      ' + str(ordr[counter][0]) + '     ' + str(ordr[counter][1]) + '       ' + str(ordr[counter][2]) + '       ' + str(ordr[counter][3]))
+                answer = input('Enter an entry number to see more information, or "q" to quit: ')
+                if answer.isint():
+                    pass
+                else:
+                    return 'cm'
+            if answer >= len(ordr) or answer < 0:
+                return 'cm'
+            else:
+                self.sql.execute('''select d.trackingNo, d.pickUpTime, d.dropOffTime, o.address, l.sid, s.name, l.pid, p.name, l.qty, l.uprice
+                                        from olines l, orders o, deliveries d, stores s, products p
+                                        where l.oid = :oid and d.oid = l.oid and s.sid = l.sid and p.pid = l.pid;''',
+                                 {'oid': ordr[answer]})
+                info = self.sql.fetchall()
+                for
+
+
+
+
 
     def agent_menu(self):
         print('\n~~~~ Agent Menu ~~~~')
@@ -120,8 +255,11 @@ class Interface:
             return 'invalid'
 
     def customer_login(self):
+        global currentid
         print('\n~~~~ Customer Login ~~~~~')
         cid = input('CID: ')
+        global basket
+        basket = [['abcd', 'storeid', 4, 'Practice item', 6.00]]
         password = input('Password: ')
         self.sql.execute('''select c.name, c.cid
                             from customers c
@@ -171,6 +309,8 @@ class Interface:
         self.is_agent = False
         print("-- Logged out of " + self.userID + ' --')
         self.userID = -1
+        global basket
+        basket = []
         time.sleep(0.4)
         return 'l'
 
