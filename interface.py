@@ -251,7 +251,7 @@ class Interface:
                     if answer == 'm':
                         counter += 1
                     elif answer == 'l':
-                        counter -= 1:
+                        counter -= 1
                     print(str(counter) + '      ' + str(ordr[counter][0]) + '     ' + str(ordr[counter][1]) + '       ' + str(ordr[counter][2]) + '       ' + str(ordr[counter][3]))
                 if counter < len(ordr) - 5 and counter > 3:
                     answer = input('Enter an entry number to see more information, "m" to see more, or "l" to see previous orders, or "q" to quit: ')
