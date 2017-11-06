@@ -526,7 +526,27 @@ class Interface:
 
     def set_delivery(self):
         print('\n~~~~ Create Delivery ~~~~')
-        # TODO
+        ordernums = []
+        done = False
+        while not done:
+            found = false
+            while not found:
+                ordernum = input('Please enter an order that you would like to add to the delivery: ')
+                if self.hasint(ordernum):
+                    ordernum = int(ordernum)
+                    self.sql.execute('''select o.oid
+                                        from orders o, deliveries d
+                                        where o.oid = :oid and o.oid not in (select oid
+                                                                             from deliveries;);''',
+                                     {'oid': ordernum})
+                    reqdorder = self.sql.fetchall()
+                    if not reqdorder:
+                        print('That order does not exist, or is already on a delivery.')
+                    else:
+                        dropoff = input('Please enter a pickup time for the order: ')
+                        self.sql.execute(''')
+                else:
+                    print('Please enter an integer')
 
     def update_delivery(self):
         print('\n~~~~ Update Delivery ~~~~')
