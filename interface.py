@@ -84,20 +84,6 @@ class Interface:
                         {'pid': self.selected_product_ID})
         product = self.sql.fetchall()[0]
 
-
-        # self.sql.execute('''select count(o.oid)
-        #                     from products p, olines ol, orders o
-        #                     where p.pid =:pid
-        #                     and p.pid = ol.pid
-        #                     and ol.oid = o.oid
-        #                     and o.odate < DATETIME("now", "-7 days");''',
-        #                  {'pid': product[1]})
-        # recent_orders = self.sql.fetchall()[0]
-
-        # product id, name, unit, category and
-        # a listing of all stores that carry the product with their prices,
-        # quantities in stock and the number of orders within the past 7 days.
-
         print('\n~~~~ Product Menu: ' + product[0] + ' ~~~~')
         print('PID: ' + product[1])
         print('Unit: ' + product[3])
