@@ -473,16 +473,31 @@ class Interface:
                                     where l.oid = :oid and o.oid = l.oid and d.oid = l.oid and s.sid = l.sid and p.pid = l.pid''',
                              {'oid': ordr[answer][0]})
             info = self.sql.fetchall()
-
-            print('Tracking #: ' + str(info[0][0]) + '\n' + 'Pickup Time: ' + str(info[0][1]) + '\n' + 'Dropoff Time: ' + str(info[0][2]) + '\n' + 'Delivery Address: ' +
-                  str(info[0][3]) + '\n' + 'ORDER CONTENTS:')
-            totalprice = 0.00
-            for i in info:
-                print('Store ID: ' + str(i[4]) + '      Store Name: ' + str(i[5]) + '       Product ID: ' + str(i[6]) + '       Product Name: ' + str(i[7]) +
-                      '     Quantity: ' + str(i[8]) + '     Unit Price: ' + "{0:.2f}".format(round(i[9])) + '$       Price: ' + "{0:.2f}".format(round(i[8] * i[9],2)) + '$')
-                totalprice += (i[8] * i[9])
-            print('----------------------------------- Order Total: ' + "{0:.2f}".format(round(totalprice)) + '$')
-            return 'cm'
+            try:
+                print('Tracking #: ' + str(info[0][0]) + '\n' + 'Pickup Time: ' + str(info[0][1]) + '\n' + 'Dropoff Time: ' + str(info[0][2]) + '\n' + 'Delivery Address: ' +
+                      str(info[0][3]) + '\n' + 'ORDER CONTENTS:')
+                totalprice = 0.00
+                for i in info:
+                    print('Store ID: ' + str(i[4]) + '      Store Name: ' + str(i[5]) + '       Product ID: ' + str(i[6]) + '       Product Name: ' + str(i[7]) +
+                          '     Quantity: ' + str(i[8]) + '     Unit Price: ' + "{0:.2f}".format(round(i[9])) + '$       Price: ' + "{0:.2f}".format(round(i[8] * i[9],2)) + '$')
+                    totalprice += (i[8] * i[9])
+                print('----------------------------------- Order Total: ' + "{0:.2f}".format(round(totalprice)) + '$')
+                return 'cm'
+            except exception:
+                self.sql.execute('''select o.address, l.sid, s.name, l.pid, p.name, l.qty, l.uprice
+                                        from olines l, orders o, deliveries d, stores s, products p
+                                        where l.oid = :oid and o.oid = l.oid and s.sid = l.sid and p.pid = l.pid''',
+                                 {'oid': ordr[answer][0]})
+                info = self.sql.fetchall()
+                print('This order is not part of a delivery' + '\n' + 'Delivery Address: ' +
+                      str(info[0][0]) + '\n' + 'ORDER CONTENTS:')
+                totalprice = 0.00
+                for i in info:
+                    print('Store ID: ' + str(i[1]) + '      Store Name: ' + str(i[2]) + '       Product ID: ' + str(i[3]) + '       Product Name: ' + str(i[4]) +
+                          '     Quantity: ' + str(i[5]) + '     Unit Price: ' + "{0:.2f}".format(round(i[6])) + '$       Price: ' + "{0:.2f}".format(round(i[5] * i[6],2)) + '$')
+                    totalprice += (i[5] * i[6])
+                print('----------------------------------- Order Total: ' + "{0:.2f}".format(round(totalprice)) + '$')
+                return 'cm'
 
     def hasint(self, answer):
         try:
@@ -553,7 +568,38 @@ class Interface:
 
     def update_delivery(self):
         print('\n~~~~ Update Delivery ~~~~')
-        # TODO
+        done = False
+        while not done:
+            ordernum = input('Please enter the tracking number of the delivery you wish to modify: ')
+            if self.hasint(ordernum):
+                ordernum = int(ordernum)
+                self.sql.execute('''select trackingNo, oid, pickUpTime, dropOffTime, count(*)
+                                    from deliveries
+                                    where trackingNo = :track
+                                    group by oid''',
+                                 {'track': trackingNo})
+                trackempty = self.sql.fetchall()
+                if not trackempty:
+                    print('That tracking number does not exist')
+                else:
+                    print('TrackingNo: ' + str(trackempty[0][0]) + '          Pickup Time: ' + str(trackempty[0][2]) +
+                          '          Dropoff Time: ' + str(trackempty[0][3]))
+                    print('Orders:')
+                    for i in trackempty:
+                        print('Order ' + str(i[1]))
+                    choice = input('Would you like to pick up and order (p), or remove an order (r): ')
+                    if choice == 'r':
+                        ordernum = input('Which order would you like to remove: ')
+                        if self.hasint(ordernum):
+                            int(ordernum)
+                            self.sql.execute('''select oid
+                                                from deliveries
+                                                where oid = :oid''',
+                                             {'oid': ordernum})
+                            order = self.sql.fetchall()
+                            if self.
+            else:
+                print('That is not a valid delivery number')
 
     def add_stock(self):
         print('\n~~~~ Add to Stock ~~~~')
