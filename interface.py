@@ -614,7 +614,7 @@ class Interface:
                                                 where :sid = sid and :pid = pid''',
                                              {'sid': sid, 'pid': pid, 'price':price})
                             self.conn.commit()
-        print('\n')
+            print('\n')
 
     def login_menu(self):
         print('\n~~~~ Login Menu ~~~~')
@@ -715,5 +715,3 @@ class Interface:
     def exit(self):
         print('-- Exiting Program --')
         return 'quit'
-
-
