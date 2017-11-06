@@ -338,7 +338,8 @@ class Interface:
         print('~~~~ View Orders ~~~~')
         self.sql.execute('''select o.oid, o.odate, sum(l.qty), sum(l.qty * l.uprice), count(*)
                             from olines l, orders o
-                            where l.oid = o.oid and o.cid = :cid;''',
+                            where l.oid = o.oid and o.cid = :cid
+                            group by o.oid;''',
                          {'cid': self.userID})
         ordr = self.sql.fetchall()
         if ordr[0][4] == 0:
@@ -350,7 +351,7 @@ class Interface:
         while not done:
             print('Entry        OrderID      Date Placed       Items Ordered     Total Cost')
             print('------------------------------------------------------------------------')
-            if len(ordr) > 5:
+            if len(ordr) > 4:
                 for i in range(0, 5):
                     if answer == 'm':
                         counter += 1
@@ -358,7 +359,7 @@ class Interface:
                         counter -= 1
                     print(str(counter) + '          ' + str(ordr[counter][0]) + '           ' + str(ordr[counter][1]) + '        '
                           + str(ordr[counter][2]) + '                      ' + str(ordr[counter][3]))
-                if len(ordr) - 5 > counter > 3:
+                if len(ordr) - 5 > counter and counter > 5:
                     answer = input('Enter an entry number to see more information, "m" to see more, or "l" to see '
                                    'previous orders, or "q" to quit: ')
                     if self.hasint(answer):
@@ -474,7 +475,7 @@ class Interface:
     def customer_login(self):
         print('\n~~~~ Customer Login ~~~~~')
         cid = input('CID: ')
-        self.basket = [['dai0', 0, 4, 'Milk, Whole, Jug', 6.00]]
+        self.basket = []
         password = input('Password: ')
         self.sql.execute('''select c.name, c.cid
                             from customers c
