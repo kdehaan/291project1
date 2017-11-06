@@ -323,9 +323,10 @@ class Interface:
                     elif answer == 'c':
                         answer = input('Please enter the new amount you wish to order')
                         if self.hasint(answer):
+                            answer = int(answer)
                             if answer >= 0:
                                 item[2] = int(answer)
-                            print('Quantity updated!')
+                                print('Quantity updated!')
                         else:
                             print('Invalid input. Integer expected.')
                     else:
@@ -335,10 +336,14 @@ class Interface:
     def list_orders(self):
         print(' ')
         print('~~~~ View Orders ~~~~')
-        self.sql.execute('''select o.oid, o.odate, sum(l.qty), sum(l.qty * l.uprice)
+        self.sql.execute('''select o.oid, o.odate, sum(l.qty), sum(l.qty * l.uprice), count(*)
                             from olines l, orders o
-                            where l.oid = o.oid''')
+                            where l.oid = o.oid and o.cid = :cid;''',
+                         {'cid': self.userID})
         ordr = self.sql.fetchall()
+        if ordr[0][4] == 0:
+            print('You have no orders.')
+            return 'cm'
         done = False
         counter = -1
         answer = 'm'
@@ -357,7 +362,7 @@ class Interface:
                     answer = input('Enter an entry number to see more information, "m" to see more, or "l" to see '
                                    'previous orders, or "q" to quit: ')
                     if self.hasint(answer):
-                        pass
+                        answer = int(answer)
                     elif answer.lower() == 'l':
                         pass
                     elif answer.lower() == 'm':
@@ -367,7 +372,7 @@ class Interface:
                 elif counter < len(ordr) - 5:
                     answer = input('Enter an entry number to see more information, "m" to see more, or "q" to quit: ')
                     if self.hasint(answer):
-                        pass
+                        answer = int(answer)
                     elif answer.lower() == 'm':
                         pass
                     else:
@@ -375,7 +380,7 @@ class Interface:
                 elif counter > 3:
                     answer = input('Enter an entry number to see more information, or "l" to see previous orders, or "q" to quit: ')
                     if self.hasint(answer):
-                        pass
+                        answer = int(answer)
                     elif answer.lower() == 'l':
                         pass
                     else:
@@ -394,13 +399,14 @@ class Interface:
                     return 'cm'
             if self.hasint(answer):
                 done = True
+        answer = int(answer)
         if answer >= len(ordr) or answer < 0:
             return 'cm'
         else:
             self.sql.execute('''select d.trackingNo, d.pickUpTime, d.dropOffTime, o.address, l.sid, s.name, l.pid, p.name, l.qty, l.uprice
                                     from olines l, orders o, deliveries d, stores s, products p
-                                    where l.oid = :oid and d.oid = l.oid and s.sid = l.sid and p.pid = l.pid;''',
-                             {'oid': ordr[answer]})
+                                    where l.oid = :oid and l.oid = o.oid and d.oid = l.oid and s.sid = l.sid and p.pid = l.pid;''',
+                             {'oid': ordr[0][answer]})
             info = self.sql.fetchall()
             print('Tracking #: ' + str(info[0][0]) + '\n' + 'Pickup Time: ' + str(info[0][1]) + '\n' + 'Dropoff Time: ' + str(info[0][2]) + '\n' + 'Delivery Address: ' +
                   str(info[0][3]) + '\n' + 'ORDER CONTENTS:')
