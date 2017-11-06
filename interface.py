@@ -572,12 +572,12 @@ class Interface:
         while not done:
             ordernum = input('Please enter the tracking number of the delivery you wish to modify: ')
             if self.hasint(ordernum):
-                ordernum = int(ordernum)
+                track = int(ordernum)
                 self.sql.execute('''select trackingNo, oid, pickUpTime, dropOffTime, count(*)
                                     from deliveries
                                     where trackingNo = :track
                                     group by oid''',
-                                 {'track': trackingNo})
+                                 {'track': track})
                 trackempty = self.sql.fetchall()
                 if not trackempty:
                     print('That tracking number does not exist')
@@ -594,10 +594,45 @@ class Interface:
                             int(ordernum)
                             self.sql.execute('''select oid
                                                 from deliveries
-                                                where oid = :oid''',
-                                             {'oid': ordernum})
+                                                where oid = :oid and trackingNo = :track''',
+                                             {'oid': ordernum, 'track': track})
                             order = self.sql.fetchall()
-                            if self.
+                            if not order:
+                                print('That order is not in that delivery')
+                            else:
+                                self.sql.execute('''delete *
+                                                    from deliveries
+                                                    where oid = :oid and trackingNo = :track''',
+                                                 {'oid': ordernum, 'track': track})
+                                self.conn.commit()
+                                print('Item deleted')
+                        elif choice == 'p':
+                            ordernum = input('Which order would you like to pickup/dropoff: ')
+                            if self.hasint(ordernum):
+                                int(ordernum)
+                                self.sql.execute('''select oid
+                                                    from deliveries
+                                                    where oid = :oid and trackingNo = :track''',
+                                                 {'oid': ordernum, 'track': track})
+                                order = self.sql.fetchall()
+                                if not order:
+                                    print('That order is not in that delivery')
+                                else:
+                                    choice = input('would you like to change the pickup time? (y/n): ')
+                                    if choice == 'y':
+                                        time = input('Enter the new pickup time: ')
+                                        self.sql.execute('''update deliveries
+                                                            set pickUpTime = :time
+                                                            where trackingNo = :track and oid = :oid''',
+                                                         {'track': track, 'oid': ordernum, 'time':time})
+                                    choice = input('Would you like to change the dropoff time? (y/n): ')
+                                    if choice == 'y':
+                                        time = input('Enter the new pickup time: ')
+                                        self.sql.execute('''update deliveries
+                                                            set dropOffTime = :time
+                                                            where trackingNo = :track and oid = :oid''',
+                                                         {'track': track, 'oid': ordernum, 'time':time})
+
             else:
                 print('That is not a valid delivery number')
 
