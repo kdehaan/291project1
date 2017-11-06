@@ -528,19 +528,24 @@ class Interface:
                     totalprice += (i[8] * i[9])
                 print('----------------------------------- Order Total: ' + "{0:.2f}".format(round(totalprice)) + '$')
                 return 'cm'
-            except exception:
+            except:
                 self.sql.execute('''select o.address, l.sid, s.name, l.pid, p.name, l.qty, l.uprice
                                         from olines l, orders o, deliveries d, stores s, products p
                                         where l.oid = :oid and o.oid = l.oid and s.sid = l.sid and p.pid = l.pid''',
                                  {'oid': ordr[answer][0]})
-                info = self.sql.fetchall()
+                infor = self.sql.fetchall()
                 print('This order is not part of a delivery' + '\n' + 'Delivery Address: ' +
-                      str(info[0][0]) + '\n' + 'ORDER CONTENTS:')
+                      str(infor[0][0]) + '\n' + 'ORDER CONTENTS:')
                 totalprice = 0.00
-                for i in info:
-                    print('Store ID: ' + str(i[1]) + '      Store Name: ' + str(i[2]) + '       Product ID: ' + str(i[3]) + '       Product Name: ' + str(i[4]) +
-                          '     Quantity: ' + str(i[5]) + '     Unit Price: ' + "{0:.2f}".format(round(i[6])) + '$       Price: ' + "{0:.2f}".format(round(i[5] * i[6],2)) + '$')
-                    totalprice += (i[5] * i[6])
+                icon = 5757575874754857485
+                for i in infor:
+                    if i[3] == icon:
+                        pass
+                    else:
+                        print('Store ID: ' + str(i[1]) + '      Store Name: ' + str(i[2]) + '       Product ID: ' + str(i[3]) + '       Product Name: ' + str(i[4]) +
+                              '     Quantity: ' + str(i[5]) + '     Unit Price: ' + "{0:.2f}".format(round(i[6])) + '$       Price: ' + "{0:.2f}".format(round(i[5] * i[6],2)) + '$')
+                        totalprice += (i[5] * i[6])
+                    icon = i[3]
                 print('----------------------------------- Order Total: ' + "{0:.2f}".format(round(totalprice)) + '$')
                 return 'cm'
 
@@ -631,7 +636,7 @@ class Interface:
         print('\n~~~~ Update Delivery ~~~~')
         done = False
         while not done:
-            ordernum = input('Please enter the tracking number of the delivery you wish to modify: ')
+            ordernum = input('Please enter the tracking number of the delivery you wish to modify, or q to quit: ')
             if self.hasint(ordernum):
                 track = int(ordernum)
                 self.sql.execute('''select trackingNo, oid, pickUpTime, dropOffTime, count(*)
@@ -648,7 +653,7 @@ class Interface:
                     print('Orders:')
                     for i in trackempty:
                         print('Order ' + str(i[1]))
-                    choice = input('Would you like to pick up and order (p), or remove an order (r): ')
+                    choice = input('Would you like to pick up an order (p), or remove an order (r): ')
                     if choice == 'r':
                         ordernum = input('Which order would you like to remove: ')
                         if self.hasint(ordernum):
@@ -661,39 +666,40 @@ class Interface:
                             if not order:
                                 print('That order is not in that delivery')
                             else:
-                                self.sql.execute('''delete *
-                                                    from deliveries
+                                self.sql.execute('''delete from deliveries
                                                     where oid = :oid and trackingNo = :track''',
                                                  {'oid': ordernum, 'track': track})
                                 self.conn.commit()
                                 print('Item deleted')
-                        elif choice == 'p':
-                            ordernum = input('Which order would you like to pickup/dropoff: ')
-                            if self.hasint(ordernum):
-                                int(ordernum)
-                                self.sql.execute('''select oid
-                                                    from deliveries
-                                                    where oid = :oid and trackingNo = :track''',
-                                                 {'oid': ordernum, 'track': track})
-                                order = self.sql.fetchall()
-                                if not order:
-                                    print('That order is not in that delivery')
-                                else:
-                                    choice = input('would you like to change the pickup time? (y/n): ')
-                                    if choice == 'y':
-                                        time = input('Enter the new pickup time: ')
-                                        self.sql.execute('''update deliveries
-                                                            set pickUpTime = :time
-                                                            where trackingNo = :track and oid = :oid''',
-                                                         {'track': track, 'oid': ordernum, 'time':time})
-                                    choice = input('Would you like to change the dropoff time? (y/n): ')
-                                    if choice == 'y':
-                                        time = input('Enter the new pickup time: ')
-                                        self.sql.execute('''update deliveries
-                                                            set dropOffTime = :time
-                                                            where trackingNo = :track and oid = :oid''',
-                                                         {'track': track, 'oid': ordernum, 'time':time})
-
+                    elif choice == 'p':
+                        ordernum = input('Which order would you like to pickup/dropoff: ')
+                        if self.hasint(ordernum):
+                            int(ordernum)
+                            self.sql.execute('''select oid
+                                                from deliveries
+                                                where oid = :oid and trackingNo = :track''',
+                                             {'oid': ordernum, 'track': track})
+                            order = self.sql.fetchall()
+                            if not order:
+                                print('That order is not in that delivery')
+                            else:
+                                choice = input('would you like to change the pickup time? (y/n): ')
+                                if choice == 'y':
+                                    time = input('Enter the new pickup time: ')
+                                    self.sql.execute('''update deliveries
+                                                        set pickUpTime = :time
+                                                        where trackingNo = :track and oid = :oid''',
+                                                     {'track': track, 'oid': ordernum, 'time':time})
+                                choice = input('Would you like to change the dropoff time? (y/n): ')
+                                if choice == 'y':
+                                    time = input('Enter the new pickup time: ')
+                                    self.sql.execute('''update deliveries
+                                                        set dropOffTime = :time
+                                                        where trackingNo = :track and oid = :oid''',
+                                                     {'track': track, 'oid': ordernum, 'time':time})
+                    print('\n')
+            elif ordernum == 'q':
+                return 'am'
             else:
                 print('That is not a valid delivery number')
 
