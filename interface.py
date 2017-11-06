@@ -526,25 +526,42 @@ class Interface:
 
     def set_delivery(self):
         print('\n~~~~ Create Delivery ~~~~')
-        ordernums = []
         done = False
+        self.sql.execute('''select count(*)
+                            from deliveries
+                            group by trackingNo''')
+        tracknum = self.sql.fetchall()[0][0] + 1
         while not done:
-            found = false
+            found = False
             while not found:
-                ordernum = input('Please enter an order that you would like to add to the delivery: ')
+                ordernum = input('Please enter an order that you would like to add to the delivery, or press "q" to quit: ')
                 if self.hasint(ordernum):
                     ordernum = int(ordernum)
                     self.sql.execute('''select o.oid
                                         from orders o, deliveries d
                                         where o.oid = :oid and o.oid not in (select oid
-                                                                             from deliveries;);''',
+                                                                             from deliveries)''',
                                      {'oid': ordernum})
                     reqdorder = self.sql.fetchall()
                     if not reqdorder:
                         print('That order does not exist, or is already on a delivery.')
                     else:
+                        dropoff = ''
                         dropoff = input('Please enter a pickup time for the order: ')
-                        self.sql.execute(''')
+                        if dropoff == '':
+                            self.sql.execute('''insert into deliveries values
+                                                (:trackingNo, :oid, Null, Null);''',
+                                             {'trackingNo': tracknum, 'oid': reqdorder[0][0]})
+                            self.conn.commit()
+                        else:
+                            self.sql.execute('''insert into deliveries values
+                                                (:trackingNo, :oid, :pickup, Null);''',
+                                             {'trackingNo': tracknum, 'oid': reqdorder[0][0], 'pickup': dropoff})
+                            self.conn.commit()
+                        print('Success! Order ' + str(reqdorder[0][0]) + ' has been added to delivery ' + str(tracknum))
+                elif ordernum == 'q':
+                    return 'am'
+
                 else:
                     print('Please enter an integer')
 
@@ -554,7 +571,64 @@ class Interface:
 
     def add_stock(self):
         print('\n~~~~ Add to Stock ~~~~')
-        # TODO
+        done = False
+        while not done:
+            pid = input('Please enter the id of the product you wish to modify, or press q to quit: ')
+            if pid == 'q':
+                return 'am'
+            sid = input('Please enter the id of the store you wish to modify, or press q to quit: ')
+            if sid == 'q':
+                return 'am'
+            if self.hasint(sid):
+                self.sql.execute('''select sid
+                                    from carries
+                                    where :sid = sid''',
+                                 {'sid': sid})
+                sidlist = self.sql.fetchall()
+                self.sql.execute('''select pid
+                                    from products
+                                    where :pid = pid''',
+                                 {'pid': pid})
+                pidlist = self.sql.fetchall()
+                if not pidlist or not sidlist:
+                    print('That store or product does not exist. Please try again')
+                else:
+                    change = input('Would you like to change the stock (s) or the price (p)? ')
+                    if change == 's':
+                        amount = int(input('How many of this product would you like to add to the store? '))
+                        self.sql.execute('''select *
+                                            from carries
+                                            where :sid = sid and :pid = pid''',
+                                         {'sid': sid, 'pid': pid})
+                        hasit = self.sql.fetchall()
+                        if not hasit:
+                            price = float(input('What price would you like to set for this product? '))
+                            self.sql.execute('''insert into carries values
+                                                (:sid, :pid, :amount, :price)''',
+                                             {'sid': sid, 'pid': pid, 'amount': amount, 'price': price})
+                            self.conn.commit()
+                        else:
+                            self.sql.execute('''update carries
+                                                set qty = qty + :amount
+                                                where :sid = sid and :pid = pid''',
+                                             {'sid': sid, 'pid': pid, 'amount': amount})
+                            self.conn.commit()
+                    elif change == 'p':
+                        self.sql.execute('''select *
+                                            from carries
+                                            where :sid = sid and :pid = pid''',
+                                         {'sid': sid, 'pid': pid})
+                        hasit = self.sql.fetchall()
+                        if not hasit:
+                            print('That product does not exist at that store.')
+                        else:
+                            price = float(input('Please enter the new price of the product: '))
+                            self.sql.execute('''update carries
+                                                set uprice = :price
+                                                where :sid = sid and :pid = pid''',
+                                             {'sid': sid, 'pid': pid, 'price':price})
+                            self.conn.commit()
+        print('\n')
 
     def login_menu(self):
         print('\n~~~~ Login Menu ~~~~')
