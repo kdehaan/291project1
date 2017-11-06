@@ -110,8 +110,18 @@ class Interface:
                                 order by c.uprice asc;''',
                              {'pid': product[1]})
             in_stock = self.sql.fetchall()
+            self.sql.execute('''select s.name, c.uprice, c.qty
+                                            from products p, carries c, stores s
+                                            where p.pid =:pid
+                                            and c.pid = p.pid
+                                            and s.sid = c.sid
+                                            and c.qty = 0
+                                            order by c.uprice asc;''',
+                             {'pid': product[1]})
+            no_stock = self.sql.fetchall()
+            either_stock = in_stock + no_stock
             index = 1
-            for store in in_stock:
+            for store in either_stock:
                 print('\n[' + str(index) + '] Store: ' + store[0])
                 print('     Price: ' + str(store[1]))
                 print('     Quantity: ' + str(store[2]))
@@ -119,11 +129,15 @@ class Interface:
             sel = input('Enter a number to add the product from that store to your basket, s to return to search '
                         'results, or m to return to the customer menu: ')
             options = {'s': 'sr', 'm': 'cm'}
-            basket_options = range(len(in_stock))
+            basket_options = range(len(either_stock))
             basket_options = ['{:d}'.format(x+1) for x in basket_options]
 
             if sel in basket_options:
-                print('in basket')
+
+                print('-- 1 unit of ' + product[0] + ' from store ' + either_stock[int(sel)-1][0] + ' added to basket --')
+                sel = input('Enter c to confirm, r to remove, or an integer value to change the quantity desired: ')
+                # TODO: integer checking
+                # TODO: add to basket
             elif sel in options:
                 return options[sel]
             else:
