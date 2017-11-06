@@ -422,11 +422,11 @@ class Interface:
                 (count,) = self.sql.fetchall()[0]
                 if count < item[2]:
                     print('The store you are ordering ' + item[3] + ' from has ' + str(count) + ' in stock.')
-                    answer = input('Would you like to remove this item (r), or change the quantity of this item (c)?').lower()
+                    answer = input('Would you like to remove this item (r), or change the quantity of this item (c)?: ').lower()
                     if answer == 'r':
                         self.basket.remove(item)
                     elif answer == 'c':
-                        answer = input('Please enter the new amount you wish to order')
+                        answer = input('Please enter the new amount you wish to order: ')
                         if self.hasint(answer):
                             answer = int(answer)
                             if answer >= 0:
