@@ -83,14 +83,55 @@ class Interface:
                          {'pid': product[1]})
         num_stores = self.sql.fetchone()[0]
         if num_stores == 0:
-            print('No stores carry this product')
-            return 'sr'
+            print('-- No stores carry this product --')
+            sel = input('Enter s to return to search results, or m to return to the customer menu: ')
+            options = {'s': 'sr', 'm': 'cm'}
+            return options[sel]
         elif num_stores == 1:
             print('One store carries this product:')
+            self.sql.execute('''select s.name, c.uprice, c.qty
+                                from products p, carries c, stores s
+                                where p.pid =:pid
+                                and c.pid = p.pid
+                                and s.sid = c.sid;''',
+                             {'pid': product[1]})
+            store = self.sql.fetchall()[0]
+            print('\nStore: ' + store[0])
+            print('     Price: ' + str(store[1]))
+            print('     Quantity: ' + str(store[2]))
         else:
             print('The following ' + str(num_stores) + ' stores carry this product:')
+            self.sql.execute('''select s.name, c.uprice, c.qty
+                                from products p, carries c, stores s
+                                where p.pid =:pid
+                                and c.pid = p.pid
+                                and s.sid = c.sid
+                                and c.qty > 0
+                                order by c.uprice asc;''',
+                             {'pid': product[1]})
+            in_stock = self.sql.fetchall()
+            index = 1
+            for store in in_stock:
+                print('\n[' + str(index) + '] Store: ' + store[0])
+                print('     Price: ' + str(store[1]))
+                print('     Quantity: ' + str(store[2]))
+                index = index + 1
+            sel = input('Enter a number to add the product from that store to your basket, s to return to search '
+                        'results, or m to return to the customer menu: ')
+            options = {'s': 'sr', 'm': 'cm'}
+            basket_options = range(len(in_stock))
+            basket_options = ['{:d}'.format(x+1) for x in basket_options]
 
-        return 'sr'
+            if sel in basket_options:
+                print('in basket')
+            elif sel in options:
+                return options[sel]
+            else:
+                return 'error'
+
+        sel = input('Enter s to return to search results, or m to return to the customer menu: ')
+        options = {'s': 'sr', 'm': 'cm'}
+        return options[sel]
 
     def product_details(self, product_name):
 
