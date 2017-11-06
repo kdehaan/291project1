@@ -414,9 +414,9 @@ class Interface:
             totalprice = 0.00
             for i in info:
                 print('Store ID: ' + str(i[4]) + '      Store Name: ' + str(i[5]) + '       Product ID: ' + str(i[6]) + '       Product Name: ' + str(i[7]) +
-                      '     Quantity: ' + str(i[8]) + '     Unit Price: ' + str(i[9]) + '       Price: ' + str(i[8] * i[9]))
+                      '     Quantity: ' + str(i[8]) + '     Unit Price: ' + "{0:.2f}".format(round(i[9])) + '$       Price: ' + "{0:.2f}".format(round(i[8] * i[9],2)) + '$')
                 totalprice += (i[8] * i[9])
-            print('----------------------------------- Order Total: ' + str(totalprice))
+            print('----------------------------------- Order Total: ' + "{0:.2f}".format(round(totalprice)) + '$')
             return 'cm'
 
     def hasint(self, answer):
