@@ -412,7 +412,7 @@ class Interface:
             print('----------------------------------- Order Total: ' + str(totalprice))
             return 'cm'
 
-    def hasint(answer):
+    def hasint(self, answer):
         try:
             int(answer)
             return True
