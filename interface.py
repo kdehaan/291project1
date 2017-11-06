@@ -350,7 +350,7 @@ class Interface:
                                     where c.sid = :isid and c.pid = :ipid''',
                                  {'isid': item[1], 'ipid': item[0]})
                 (count,) = self.sql.fetchall()[0]
-                if count < item [2]:
+                if count < item[2]:
                     print('The store you are ordering ' + item[3] + ' from has ' + str(count) + ' in stock.')
                     answer = input('Would you like to remove this item (r), or change the quantity of this item (c)?').lower()
                     if answer == 'r':
@@ -377,7 +377,7 @@ class Interface:
                             group by o.oid;''',
                          {'cid': self.userID})
         ordr = self.sql.fetchall()
-        if ordr[0][4] == 0:
+        if not ordr:
             print('You have no orders.')
             return 'cm'
         done = False
