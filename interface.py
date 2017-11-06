@@ -444,8 +444,7 @@ class Interface:
                                     where l.oid = :oid and o.oid = l.oid and d.oid = l.oid and s.sid = l.sid and p.pid = l.pid''',
                              {'oid': ordr[answer][0]})
             info = self.sql.fetchall()
-            for i in info:
-                print(str(i))
+
             print('Tracking #: ' + str(info[0][0]) + '\n' + 'Pickup Time: ' + str(info[0][1]) + '\n' + 'Dropoff Time: ' + str(info[0][2]) + '\n' + 'Delivery Address: ' +
                   str(info[0][3]) + '\n' + 'ORDER CONTENTS:')
             totalprice = 0.00
