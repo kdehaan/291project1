@@ -77,15 +77,31 @@ class Interface:
 
     def product_submenu(self):
         options = {'s': 'sr', 'm': 'cm'}
-        self.sql.execute('''select p.name, p.pid, c.name
+        self.sql.execute('''select p.name, p.pid, c.name, p.unit
                             from products p, categories c
                             where p.pid=:pid
                             and p.cat = c.cat''',
                         {'pid': self.selected_product_ID})
         product = self.sql.fetchall()[0]
 
+
+        # self.sql.execute('''select count(o.oid)
+        #                     from products p, olines ol, orders o
+        #                     where p.pid =:pid
+        #                     and p.pid = ol.pid
+        #                     and ol.oid = o.oid
+        #                     and o.odate < DATETIME("now", "-7 days");''',
+        #                  {'pid': product[1]})
+        # recent_orders = self.sql.fetchall()[0]
+
+        # product id, name, unit, category and
+        # a listing of all stores that carry the product with their prices,
+        # quantities in stock and the number of orders within the past 7 days.
+
         print('\n~~~~ Product Menu: ' + product[0] + ' ~~~~')
-        print('PID: ' + product[1] + '  Category: ' + product[2])
+        print('PID: ' + product[1])
+        print('Unit: ' + product[3])
+        print('Category: ' + product[2])
 
         self.sql.execute('''select count(c.sid)
                             from products p, carries c
@@ -107,12 +123,26 @@ class Interface:
                                 and s.sid = c.sid;''',
                              {'pid': product[1]})
             store = self.sql.fetchall()[0]
-            print('\nStore: ' + store[0])
+            self.sql.execute('''select count(o.oid)
+                                from products p, olines ol, orders o
+                                where p.pid=:pid
+                                and ol.oid = o.oid
+                                and o.odate < DATETIME("now", "-7 days")
+                                and ol.sid =:sid''',
+                             {'pid': product[1], 'sid': store[3]})
+            recent_orders = self.sql.fetchall()
+
+            print('\n[1] Store: ' + store[0])
             print('     Price: ' + str(store[1]))
             print('     Quantity: ' + str(store[2]))
-            sel = input('\nEnter a to add this product to your basket, s to return to search '
+            if not recent_orders:
+                print('     Recent orders: 0')
+            else:
+                print('     Recent orders: ' + str(recent_orders[0][0]))
+
+            sel = input('\nEnter 1 to add this product to your basket, s to return to search '
                         'results, or m to return to the customer menu: ')
-            if sel == 'a':
+            if sel == '1':
                 print('-- 1 unit of ' + product[0] + ' from store ' + store[0] + ' added to basket --')
                 sel = input('\nEnter c to confirm, r to remove, or an integer value to change the quantity desired: ')
                 quantity = 1
@@ -147,12 +177,25 @@ class Interface:
                                             order by c.uprice asc;''',
                              {'pid': product[1]})
             no_stock = self.sql.fetchall()
+
             either_stock = in_stock + no_stock
             index = 1
             for store in either_stock:
+                self.sql.execute('''select count(o.oid)
+                                                from products p, olines ol, orders o
+                                                where p.pid=:pid
+                                                and ol.oid = o.oid
+                                                and o.odate < DATETIME("now", "-7 days")
+                                                and ol.sid =:sid''',
+                                 {'pid': product[1], 'sid': store[3]})
+                recent_orders = self.sql.fetchall()
                 print('\n[' + str(index) + '] Store: ' + store[0])
                 print('     Price: ' + str(store[1]))
                 print('     Quantity: ' + str(store[2]))
+                if not recent_orders:
+                    print('     Recent orders: 0')
+                else:
+                    print('     Recent orders: ' + str(recent_orders[0][0]))
                 index = index + 1
             sel = input('\nEnter a number to add the product from that store to your basket, s to return to search '
                         'results, or m to return to the customer menu: ')
