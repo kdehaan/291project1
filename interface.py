@@ -521,7 +521,7 @@ class Interface:
                             where c.cid=:cid
                             and c.pwd=:pwd''',
                          {'cid': cid, 'pwd': password})
-        response = self.sql.fetchall()[0]
+        response = self.sql.fetchall()
         if not response:
             print("Invalid ID or Password")
             time.sleep(self.delay)
@@ -531,7 +531,7 @@ class Interface:
             else:
                 return 'c'
         else:
-            print('-- Logged in as ' + response[0] + ' --')
+            print('-- Logged in as ' + response[0][0] + ' --')
             self.userID = cid
             return 'cm'
 
