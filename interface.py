@@ -38,6 +38,10 @@ class Interface:
                        }
 
     def run(self):
+        """
+        State machine framework, handles input errors and state transitions
+        :return:
+        """
         while True:
             selection = self.states[self.state]()
             if selection in self.states:
@@ -49,6 +53,10 @@ class Interface:
                 time.sleep(self.delay)
 
     def customer_menu(self):
+        """
+        Displayes options and handles customer state selection
+        :return: selected state
+        """
         print('\n~~~~ Customer Menu ~~~~')
         print('Search for products: s')
         print('Place an order: p')
@@ -66,6 +74,11 @@ class Interface:
             return 'invalid'
 
     def basket_add(self, basket_item):
+        """
+        Safely adds item to basket, catches duplicate entries
+        :param basket_item:
+        :return:
+        """
         duplicate = False
         for item in self.basket:
             if item[0] == basket_item[0]:
@@ -76,6 +89,10 @@ class Interface:
             self.basket.append(basket_item)
 
     def product_submenu(self):
+        """
+        Displays detailed information on a product with the stores that carry it. Allows for adding to basket
+        :return: state selection
+        """
         options = {'s': 'sr', 'm': 'cm'}
         self.sql.execute('''select p.name, p.pid, c.name, p.unit
                             from products p, categories c
@@ -212,6 +229,11 @@ class Interface:
         return options[sel]
 
     def product_details(self, product_name):
+        """
+        Used in search_results to print information about a product
+        :param product_name:
+        :return: void
+        """
 
         self.sql.execute('''select p.pid, p.unit
                             from products p
@@ -253,6 +275,11 @@ class Interface:
         print('     There have been ' + str(recent_orders[0]) + ' orders for this in the last 7 days')
 
     def search_results(self):
+        """
+        Displays search results according to relevancy and allows selection of products to view product_submenu
+        Handles pagination of results
+        :return: product submenu if item selected, customer menu otherwise
+        """
         print('\n-- Results Found --')
         result = self.search_result
         index = 1
@@ -283,6 +310,11 @@ class Interface:
             return 'error'
 
     def search_products(self):
+        """
+        Takes user keyword input and stores search results.
+        Leads to search_results
+        :return: search results (or customer menu if no results)
+        """
         print('\n~~~~ Product Search ~~~~')
         print('Multiple keywords separated by spaces may be entered')
         keywords = input('Enter keyword(s) to search for: ').split()
@@ -324,6 +356,11 @@ class Interface:
         return 'cm'
 
     def place_order(self):
+        """
+        Places an order for all items in the customer’s basket.
+        Prompts the user to alter the quantity of an item if the store does not have enough in stock
+        :return: customer menu
+        """
         if not self.basket:
             print('Your basket is empty. Please choose at least one product before placing an order')
             return 'cm'
@@ -370,6 +407,10 @@ class Interface:
         return 'cm'
 
     def basket_check(self):
+        """
+        Checks basket to see if order is possible and prompts user to update if it is not
+        :return: void
+        """
         for item in self.basket:
             if item[2] < 1:
                 self.basket.remove(item)
@@ -398,6 +439,10 @@ class Interface:
                     self.basket_check()
 
     def list_orders(self):
+        """
+        Lists all orders placed by currently logged in user. Allows user to view individual orders
+        :return:
+        """
         print(' ')
         print('~~~~ View Orders ~~~~')
         self.sql.execute('''select o.oid, o.odate, sum(l.qty), sum(l.qty * l.uprice), count(*)
@@ -500,6 +545,11 @@ class Interface:
                 return 'cm'
 
     def hasint(self, answer):
+        """
+        checks if string has a valid positive integer equivalent
+        :param answer:
+        :return:
+        """
         try:
             int(answer)
             if int(answer) < 0:
@@ -509,6 +559,10 @@ class Interface:
             return False
 
     def agent_menu(self):
+        """
+        Displays options and handles agent state selection
+        :return: selected state
+        """
         print('\n~~~~ Agent Menu ~~~~')
         print('Set up a delivery: s')
         print('Update a delivery: u')
@@ -526,6 +580,10 @@ class Interface:
             return 'invalid'
 
     def set_delivery(self):
+        """
+        Allows an agent to create a deliver and add orders to it
+        :return: agent menu state
+        """
         print('\n~~~~ Create Delivery ~~~~')
         done = False
         self.sql.execute('''select count(*)
@@ -547,7 +605,6 @@ class Interface:
                     if not reqdorder:
                         print('That order does not exist, or is already on a delivery.')
                     else:
-                        dropoff = ''
                         dropoff = input('Please enter a pickup time for the order: ')
                         if dropoff == '':
                             self.sql.execute('''insert into deliveries values
@@ -567,6 +624,10 @@ class Interface:
                     print('Please enter an integer')
 
     def update_delivery(self):
+        """
+        Allows an agent to update an existing delivery
+        :return: agent menu state
+        """
         print('\n~~~~ Update Delivery ~~~~')
         done = False
         while not done:
@@ -602,6 +663,10 @@ class Interface:
                 print('That is not a valid delivery number')
 
     def add_stock(self):
+        """
+        Allows an agent to add stock to selected products
+        :return: agent menu state
+        """
         print('\n~~~~ Add to Stock ~~~~')
         done = False
         while not done:
@@ -663,6 +728,10 @@ class Interface:
             print('\n')
 
     def login_menu(self):
+        """
+        Displays login menu and handles navigation to registration and logins. Program exit point
+        :return: next state
+        """
         print('\n~~~~ Login Menu ~~~~')
         print('Customer Login: c')
         print('Agent Login: a')
@@ -680,6 +749,10 @@ class Interface:
             return 'invalid'
 
     def customer_login(self):
+        """
+        State for customer login. Will refuse incorrect passwords or nonexistent CIDs
+        :return: login menu state if failed, customer menu if succeeded
+        """
         print('\n~~~~ Customer Login ~~~~~')
         cid = input('CID: ')
         self.basket = []
@@ -704,6 +777,10 @@ class Interface:
             return 'cm'
 
     def agent_login(self):
+        """
+        State for agent login. Will refuse incorrect passwords or nonexistent CIDs
+        :return: login menu state if failed, agent menu if succeeded
+         """
         print('\n~~~~ Agent Login ~~~~')
         aid = input('AID: ')
         password = input('Password: ')
@@ -729,6 +806,10 @@ class Interface:
             return 'am'
 
     def logout(self):
+        """
+        Logs out user or agent
+        :return: login menu state
+        """
         self.is_agent = False
         print("-- Logged out of " + self.userID + ' --')
         self.userID = -1
@@ -737,6 +818,10 @@ class Interface:
         return 'l'
 
     def register(self):
+        """
+        Allows user to register as a new customer. Will refuse duplicate CIDs
+        :return: go to login state
+        """
         print('\n~~~~ New Customer ~~~~')
         cid = input('CID: ')
         self.sql.execute('''select c.cid
@@ -759,5 +844,9 @@ class Interface:
         return 'l'
 
     def exit(self):
+        """
+        Exits the program
+        :return: break state
+        """
         print('-- Exiting Program --')
         return 'quit'
