@@ -11,8 +11,10 @@ class Interface:
     states = {}  # contains the state machine states
     state = 'l'  # init state machine on login menu
     delay = 0.4
-    selected_product = '-1'
+    selected_product_ID = '-1'
     basket = []
+    page = 0
+    search_result = []
 
     def __init__(self, conn, sql):
         self.conn = conn
@@ -22,6 +24,7 @@ class Interface:
                        'a': self.agent_login,
                        'cm': self.customer_menu,
                        'sp': self.search_products,
+                       'sr': self.search_results,
                        'ps': self.product_submenu,
                        'po': self.place_order,
                        'lo': self.list_orders,
@@ -63,8 +66,31 @@ class Interface:
             return 'invalid'
 
     def product_submenu(self):
-        print('\n~~~~ Product Menu: ' + self.selected_product + ' ~~~~')
-        return 'cm'
+        self.sql.execute('''select p.name, p.pid, c.name
+                            from products p, categories c
+                            where p.pid=:pid
+                            and p.cat = c.cat''',
+                        {'pid': self.selected_product_ID})
+        product = self.sql.fetchall()[0]
+
+        print('\n~~~~ Product Menu: ' + product[0] + ' ~~~~')
+        print('PID: ' + product[1] + '  Category: ' + product[2])
+
+        self.sql.execute('''select count(c.sid)
+                            from products p, carries c
+                            where p.pid =:pid
+                            and c.pid = p.pid;''',
+                         {'pid': product[1]})
+        num_stores = self.sql.fetchone()[0]
+        if num_stores == 0:
+            print('No stores carry this product')
+            return 'sr'
+        elif num_stores == 1:
+            print('One store carries this product:')
+        else:
+            print('The following ' + str(num_stores) + ' stores carry this product:')
+
+        return 'sr'
 
     def product_details(self, product_name):
 
@@ -107,6 +133,36 @@ class Interface:
             print('     ' + str(in_stock[0]) + ' stores have this in stock, lowest price: ' + str(in_stock[1]))
         print('     There have been ' + str(recent_orders[0]) + ' orders for this in the last 7 days')
 
+    def search_results(self):
+        print('\n-- Results Found --')
+        result = self.search_result
+        index = 1
+        for row in result[self.page * 5:]:
+            print('\n[' + str(index) + '] ' + row[0])
+            self.product_details(row[0])
+            index = index + 1
+            if index > 5:
+                break
+        if len(result) > 5:
+            print('\nThere are multiple pages of results, enter f or b to go forward or backwards in pages')
+            print('You are currently on page ' + str(self.page+1))
+        sel = input('\nEnter a number to view details, or r to return: ')
+        if sel == 'r':
+            return 'cm'
+        elif sel == 'f':
+            self.page = self.page + 1
+            return 'sr'
+        elif sel == 'b':
+            self.page = self.page - 1
+            if self.page < 0:
+                self.page = 0
+            return 'sr'
+        elif sel in {'1', '2', '3', '4', '5'}:
+            self.selected_product_ID = result[(self.page * 5) + int(sel) - 1][1]
+            return 'ps'
+        else:
+            return 'error'
+
     def search_products(self):
         print('\n~~~~ Product Search ~~~~')
         print('Multiple keywords separated by spaces may be entered')
@@ -133,24 +189,14 @@ class Interface:
                                when p.name like '%%%s%%' then 1
                                else 0
                                end ''' % keyword
-        query = query + ''') desc limit 5'''
+        query = query + ''') desc'''
         self.sql.execute(query)
         result = self.sql.fetchall()
+
         if result:
-            print('\n-- Results Found --')
-            index = 1
-            for row in result:
-                print('\n[' + str(index) + '] ' + row[0])
-                self.product_details(row[0])
-                index = index + 1
-            sel = input('\nEnter a number to view details, or r to return: ')
-            if sel == 'r':
-                return 'cm'
-            elif sel in {'1', '2', '3', '4', '5'}:
-                self.selected_product = result[int(sel)-1][0]
-                return 'ps'
-            else:
-                return 'error'
+            self.page = 0
+            self.search_result = result
+            return 'sr'
 
         else:
             print('\n-- No Results Found --')
@@ -301,8 +347,8 @@ class Interface:
                                     where l.oid = :oid and d.oid = l.oid and s.sid = l.sid and p.pid = l.pid;''',
                              {'oid': ordr[answer]})
             info = self.sql.fetchall()
-            print('Tracking #: ' + str(info[0][0]) + '\n' + 'Pickup Time: ' + str(info[0][1]) + '\n' + 'Dropoff Time: ' + str(item[0][2]) + '\n' + 'Delivery Address: ' +
-                  str(item[0][3]) + '\n' + 'ORDER CONTENTS:')
+            print('Tracking #: ' + str(info[0][0]) + '\n' + 'Pickup Time: ' + str(info[0][1]) + '\n' + 'Dropoff Time: ' + str(info[0][2]) + '\n' + 'Delivery Address: ' +
+                  str(info[0][3]) + '\n' + 'ORDER CONTENTS:')
             totalprice = 0.00
             for i in info:
                 print('Store ID: ' + str(i[4]) + '      Store Name: ' + str(i[5]) + '       Product ID: ' + str(i[6]) + '       Product Name: ' + str(i[7]) +
@@ -374,7 +420,7 @@ class Interface:
                             where c.cid=:cid
                             and c.pwd=:pwd''',
                          {'cid': cid, 'pwd': password})
-        response = self.sql.fetchall()
+        response = self.sql.fetchall()[0]
         if not response:
             print("Invalid ID or Password")
             time.sleep(self.delay)
@@ -384,7 +430,7 @@ class Interface:
             else:
                 return 'c'
         else:
-            print(response[0])
+            print('-- Logged in as ' + response[0] + ' --')
             self.userID = cid
             return 'cm'
 
