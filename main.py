@@ -34,10 +34,18 @@ def setup():
     Setup function
     :return:
     """
+
     sql.execute('''PRAGMA foreign_keys=ON;''')
-    sql_from_file('./tables.sql')
-    sql_from_file('./agents.sql')
-    sql_from_file('./data.sql')
+    while True:
+        file = input('File location of sql input code (leave empty for default, enter "c" when done): ')
+        if not file:
+            sql_from_file('./tables.sql')
+            sql_from_file('./agents.sql')
+            sql_from_file('./data.sql')
+            break
+        if file == 'c':
+            break
+        sql_from_file(file)
 
     conn.commit()
 

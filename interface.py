@@ -54,7 +54,7 @@ class Interface:
 
     def customer_menu(self):
         """
-        Displayes options and handles customer state selection
+        Displays options and handles customer state selection
         :return: selected state
         """
         print('\n~~~~ Customer Menu ~~~~')
@@ -841,7 +841,7 @@ class Interface:
             else:
                 return 'a'
         else:
-            print(response[0])
+            print('-- Logged in as ' + response[0][0] + ' --')
             self.userID = aid
             self.is_agent = True
             return 'am'
