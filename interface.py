@@ -65,7 +65,18 @@ class Interface:
         except KeyError:
             return 'invalid'
 
+    def basket_add(self, basket_item):
+        duplicate = False
+        for item in self.basket:
+            if item[0] == basket_item[0]:
+                if item[1] == basket_item[1]:
+                    item[2] += basket_item[2]
+                    duplicate = True
+        if not duplicate:
+            self.basket.append(basket_item)
+
     def product_submenu(self):
+        options = {'s': 'sr', 'm': 'cm'}
         self.sql.execute('''select p.name, p.pid, c.name
                             from products p, categories c
                             where p.pid=:pid
@@ -84,12 +95,12 @@ class Interface:
         num_stores = self.sql.fetchone()[0]
         if num_stores == 0:
             print('-- No stores carry this product --')
-            sel = input('Enter s to return to search results, or m to return to the customer menu: ')
+            sel = input('\nEnter s to return to search results, or m to return to the customer menu: ')
             options = {'s': 'sr', 'm': 'cm'}
             return options[sel]
         elif num_stores == 1:
             print('One store carries this product:')
-            self.sql.execute('''select s.name, c.uprice, c.qty
+            self.sql.execute('''select s.name, c.uprice, c.qty, s.sid
                                 from products p, carries c, stores s
                                 where p.pid =:pid
                                 and c.pid = p.pid
@@ -99,9 +110,26 @@ class Interface:
             print('\nStore: ' + store[0])
             print('     Price: ' + str(store[1]))
             print('     Quantity: ' + str(store[2]))
+            sel = input('\nEnter a to add this product to your basket, s to return to search '
+                        'results, or m to return to the customer menu: ')
+            if sel == 'a':
+                print('-- 1 unit of ' + product[0] + ' from store ' + store[0] + ' added to basket --')
+                sel = input('\nEnter c to confirm, r to remove, or an integer value to change the quantity desired: ')
+                quantity = 1
+                if self.hasint(sel):
+                    quantity = int(sel)
+                    print('-- Quantity updated to ' + sel + ' --')
+                if sel == 'c' or self.hasint(sel):
+                    basket_item = [product[1], store[3], quantity, product[0], store[1]]
+                    self.basket_add(basket_item)
+                else:
+                    return 'error'
+            elif sel in options:
+                return options[sel]
+
         else:
             print('The following ' + str(num_stores) + ' stores carry this product:')
-            self.sql.execute('''select s.name, c.uprice, c.qty
+            self.sql.execute('''select s.name, c.uprice, c.qty, s.sid
                                 from products p, carries c, stores s
                                 where p.pid =:pid
                                 and c.pid = p.pid
@@ -110,7 +138,7 @@ class Interface:
                                 order by c.uprice asc;''',
                              {'pid': product[1]})
             in_stock = self.sql.fetchall()
-            self.sql.execute('''select s.name, c.uprice, c.qty
+            self.sql.execute('''select s.name, c.uprice, c.qty, s.sid
                                             from products p, carries c, stores s
                                             where p.pid =:pid
                                             and c.pid = p.pid
@@ -126,25 +154,32 @@ class Interface:
                 print('     Price: ' + str(store[1]))
                 print('     Quantity: ' + str(store[2]))
                 index = index + 1
-            sel = input('Enter a number to add the product from that store to your basket, s to return to search '
+            sel = input('\nEnter a number to add the product from that store to your basket, s to return to search '
                         'results, or m to return to the customer menu: ')
-            options = {'s': 'sr', 'm': 'cm'}
+
             basket_options = range(len(either_stock))
             basket_options = ['{:d}'.format(x+1) for x in basket_options]
 
             if sel in basket_options:
-
-                print('-- 1 unit of ' + product[0] + ' from store ' + either_stock[int(sel)-1][0] + ' added to basket --')
-                sel = input('Enter c to confirm, r to remove, or an integer value to change the quantity desired: ')
-                # TODO: integer checking
-                # TODO: add to basket
+                store_entry = either_stock[int(sel)-1]
+                print('-- 1 unit of ' + product[0] + ' from store ' + store_entry[0] + ' added to basket --')
+                sel = input('\nEnter c to confirm, r to remove, or an integer value to change the quantity desired: ')
+                quantity = 1
+                if self.hasint(sel):
+                    quantity = int(sel)
+                    print('-- Quantity updated to ' + sel + ' --')
+                if sel == 'c' or self.hasint(sel):
+                    basket_item = [product[1], store_entry[3], quantity, product[0], store_entry[1]]
+                    self.basket_add(basket_item)
+                else:
+                    return 'error'
             elif sel in options:
                 return options[sel]
             else:
                 return 'error'
 
         sel = input('Enter s to return to search results, or m to return to the customer menu: ')
-        options = {'s': 'sr', 'm': 'cm'}
+
         return options[sel]
 
     def product_details(self, product_name):
@@ -331,7 +366,7 @@ class Interface:
                             print('Invalid input. Integer expected.')
                     else:
                         print('invalid input')
-                    self.self.basket_check()
+                    self.basket_check()
 
     def list_orders(self):
         print(' ')
@@ -422,6 +457,8 @@ class Interface:
     def hasint(self, answer):
         try:
             int(answer)
+            if int(answer) < 0:
+                return False
             return True
         except ValueError:
             return False
